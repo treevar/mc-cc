@@ -97,20 +97,22 @@ local function findNodes()
 end
 
 --Resolve id/location to node
+--Prioritizes ID over name
 local function resolveNode(input)
     local id = tonumber(input)
-    if(not id) then
-        for nID, n in pairs(nodes) do
-            if(n.loc == input) then
-                return n
-            end
+    --Check ID first
+    if(id ~= nil) then
+        if(nodes[id] ~= nil) then
+            return nodes[id]
         end
-        return nil
     end
-    if(nodes[id] == nil) then
-        return nil
+    --Check loc if ID wasnt found
+    for nID, n in pairs(nodes) do
+        if(n.loc == input) then
+            return n
+        end
     end
-    return nodes[id]
+    return nil
 end
 
 --Handle terminal input

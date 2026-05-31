@@ -29,6 +29,8 @@ local stasisNetMgr = Proto_Manager:new(Stasis_Proto, false, 1, log)
 local redNetCmd = {}
 local terminalCmd = {}
 
+local triggerTasks = {}
+
 local netCodeActive = true
 local shouldRun = true
 
@@ -87,12 +89,31 @@ local function triggerStasis(relayIdx, side)
     local defState = config:get("def_state")
     relay.setOutput(side, not defState)
     log:log(Log.Level.INFO, "Triggered side", side, "on relay", relayIdx)
-    sleep(0.2) --Wait to trigger redstone
+    --Wait to trigger redstone
+    local tTime = config:get("trigger_time")
+    local start = os.clock()
+    while os.clock() - start < tTime do
+        coroutine.yield()
+    end 
     relay.setOutput(side, defState)
+end
+
+local function tickTasks()
+    for i = #triggerTasks, 1, -1 do
+        local task = triggerTasks[i]
+        local suc, err = coroutine.resume(task)
+        if(not suc) then
+            log:log(Log.Level.ERROR, "Trigger task failed with err:", err)
+            table.remove(triggerTasks, i)
+        elseif(coroutine.status(task) == "dead") then
+            table.remove(triggerTasks, i)
+        end
+    end
 end
 
 local function procRednet()
     while true do
+        tickTasks()
         if(netCodeActive) then
             local req = stasisNetMgr:recv()
             if(req) then
@@ -158,7 +179,11 @@ redNetCmd[Stasis_Proto.CMD.TP] = function(pckt)
         stasisNetMgr:send(pckt.id, 401, Stasis_Proto.CMD.TP, "User not set on node")
     else
         stasisNetMgr:send(pckt.id, 200, Stasis_Proto.CMD.TP, "Triggering")
-        triggerStasis(user.relayIdx, user.side)
+        --Create coroutine so execution isnt paused
+        local task = coroutine.create(function()
+            triggerStasis(user.relayIdx, user.side)
+        end)
+        table.insert(triggerTasks, task)
     end
 end
 
@@ -315,6 +340,10 @@ end
 
 if(not config:has("timeout")) then
     config:set("timeout", 1)
+end
+
+if(not config:has("trigger_time")) then
+    config:set("trigger_time", 0.2)
 end
 
 config:save()

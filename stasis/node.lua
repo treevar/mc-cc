@@ -197,9 +197,12 @@ end
 terminalCmd["help"] = {
     fn = function(cmd)
         print("Commands:")
-        for name, cmd in terminalCmd do
-            print(" " .. cmd.helpName)
-            print("  " .. cmd.helpStr)
+        for name, cmd in pairs(terminalCmd) do
+            --Only print enabled commands
+            if(not cmd.debug or config:get("debug")) then
+                print(" " .. cmd.helpName)
+                print("  " .. cmd.helpStr)
+            end
         end
     end,
     debug = false,

@@ -97,6 +97,14 @@ GCode = {
         MACHINE = 1,    --Called by the machine (terminates)
         STOP = 2,       --Stops reading program and terminates
         WAIT = 3        --Halts and waits for user input
+    },
+    wcsIdx = {
+        G54 = 1,
+        G55 = 2,
+        G56 = 3,
+        G57 = 4,
+        G58 = 6,
+        G59 = 6,
     }
 }
 

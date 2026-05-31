@@ -15,8 +15,17 @@ Interp = {
         z = 0,
         heading = 0,
         plane = GCode.plane.XZ, 
-        wcs = "G54",
-        modal = {},
+        wcs = {
+            [1] = {x = 0, y = 0, z = 0},
+            [2] = {x = 0, y = 0, z = 0},
+            [3] = {x = 0, y = 0, z = 0},
+            [4] = {x = 0, y = 0, z = 0},
+            [5] = {x = 0, y = 0, z = 0},
+            [6] = {x = 0, y = 0, z = 0},
+        },
+        modal = {
+            [GCode.modal.WCS] = GCode.wcsIdx.G54
+        },
         halted = GCode.haltType.NONE,
     },
     programStack = {
@@ -90,14 +99,19 @@ function Interp:getParam(cmd, letter, stateIfNil)
     local val = self:getParamRaw(letter, stateIfNil)
     if(val == nil) then return nil end
     if(not cmd.round) then
-        
+        return math.floor()
     end
     return nil
 end
 
 Interp.handler = {
     G04 = function(cmd, interp)
-        sleep(interp:getParam("P"))
+        local P = interp:getParam("P")
+        if(P < 0) then
+            interp:halt(GCode.haltType.MACHINE, "Invalid P value")
+            return
+        end
+        sleep(P)
     end,
     G10 = function(cmd, interp)
         local L = interp:getParam("L")
@@ -113,6 +127,7 @@ Interp.handler = {
             interp:halt(GCode.haltType.MACHINE, "Invalid P value")
             return
         end
+        local wcs = interp.state.wcs[P]
     end
 }
 
@@ -154,23 +169,30 @@ function Interp.getBadSyntaxIndex(line)
     return lowestIdx
 end
 
-function Interp.verifyParam(p, val)
-    if(val == nil) then return true end
-    if(p.float or p.round) then return true end
-    local _, decPart = math.modf(val)
-    if(decPart > 0) then return false end
-    return true
+function Interp.roundParam(p, val)
+    local intPart, decPart = math.modf(val)
+    if(not p.float and decPart > 0) then return nil end
+    if(p.round) then
+        val = math.floor(val + 0.5)
+    end
+    return val
 end
 
-function Interp.verifyParams(cmd, params)
-    if(not params) then return true end
+function Interp.roundParams(cmd, params)
+    if(not params) then return nil end
     for k, v in pairs(cmd.reqArgs) do
-        if(not Interp.verifyParam(v, params[v.c])) then return false end
+        if(params[v.c] ~= nil) then
+            params[v.c] = Interp.roundParam(v, params[v.c])
+            if(params[v.c] == nil) then return v.c end
+        end
     end
     for k, v in pairs(cmd.optArgs) do
-        if(not Interp.verifyParam(v, params[v.c])) then return false end
+         if(params[v.c] ~= nil) then
+            params[v.c] = Interp.roundParam(v, params[v.c])
+            if(params[v.c] == nil) then return v.c end
+        end
     end
-    return true
+    return nil
 end
 
 function Interp.verifySubProgCall(parsed)
@@ -218,9 +240,12 @@ function Interp.isBadLine(parsed)
         if(missingArg) then
             retObj.badCmd = cmd
             retObj.failureStr = "Missing '" .. missingArg.c .. "' for cmd " .. cmd.str
-        elseif(not Interp.verifyParams(cmd, parsed.args)) then
-            retObj.badCmd = cmd
-            retObj.failureStr = GCode.error.PARAM_BAD_VAL
+        else
+            local badParam = Interp.roundParams(cmd, parsed.args)
+            if(badParam) then
+                retObj.badCmd = cmd
+                retObj.failureStr = "Non-int value for non-rounding param '" .. badParam .. "'"
+            end
         end
     end
     local hasSubCall = false
@@ -238,14 +263,11 @@ function Interp.isBadLine(parsed)
         if(retObj.badCmd) then return retObj end
     end
     --Verify subprogram call
-    if(hasSubCall and hasSubRet) then
-        retObj.badCmd = "M99"
-        retObj.failureStr = GCode.error.SUBPROG_CALL_RETURN
-        return retObj
-    end
-
     if(hasSubCall) then
-        if(not Interp.verifySubProgCall(parsed)) then
+        if(hasSubRet) then
+            retObj.badCmd = "M99"
+            retObj.failureStr = GCode.error.SUBPROG_CALL_RETURN
+        elseif(not Interp.verifySubProgCall(parsed)) then
             retObj.badCmd = "M98"
             retObj.failureStr = GCode.error.SUBPROG_PARAM
         end
@@ -395,7 +417,7 @@ function Interp:lineFn(line)
     --Verify
     local bad = Interp.isBadLine(parsed)
     if(bad) then
-        self:halt(GCode.haltType.MACHINE, bad.failureStr)
+        self:halt(GCode.haltType.MACHINE, "(" .. bad.cmd.str .. "): " .. bad.failureStr)
         return
     end
     --Exec

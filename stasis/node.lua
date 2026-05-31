@@ -140,8 +140,13 @@ local function procTerminal()
         write(config:get("loc") .. "> ")
         local cmd = Util.split(read(), ' ') --Yields
         if(#cmd > 0) then
-            if(terminalCmd[cmd[1]]) then
-                terminalCmd[cmd[1]](cmd)
+            local termCmd = terminalCmd[cmd[1]]
+            if(termCmd) then
+                if(termCmd.debug and not config:get("debug")) then
+                    print("Debug cmds are disabled")
+                else
+                    termCmd.fn(cmd)
+                end
             else
                 print("Unknown command")
             end
@@ -189,117 +194,164 @@ end
 
 --Terminal Cmd Callbacks
 
-terminalCmd["help"] = function(cmd)
-    print("Commands:")
-    print(" exit \n  Exit the program")
-    print(" set [userID] [side] [relay Idx] \n  Set a user ID to a relay and side")
-    print(" clear (user/side) [userID/side] [relay idx if side] \n  Clear a user or side mapping")
-    print(" save \n  Save config to disk")
-    print(" config [key] {value} \n  Get or set config values")
-    print(" map \n  Print user to relay/side mappings")
-    print(" relays \n  Print available relays and their indexes")
-end
+terminalCmd["help"] = {
+    fn = function(cmd)
+        print("Commands:")
+        for name, cmd in terminalCmd do
+            print(" " .. cmd.helpName)
+            print("  " .. cmd.helpStr)
+        end
+    end,
+    debug = false,
+    helpName = "help",
+    helpStr = "Print cmd info",
+}
 
 
-terminalCmd["exit"] = function(cmd)
-    shouldRun = false
-end
+terminalCmd["exit"] = {
+    fn = function(cmd)
+        shouldRun = false
+    end,
+    debug = false,
+    helpName = "exit",
+    helpStr = "Exit the program",
+}
 
-terminalCmd["set"] = function(cmd)
-    if(#cmd < 4) then
-        print("Invalid usage, correct is set [userID] [side] [relay Idx]")
-        return
-    end
-    local userID = cmd[2]
-    local side = cmd[3]
-    local relayIdx = cmd[4]
-    if(not Util.isSide(side)) then
-        print("Invalid side")
-        return
-    end
-    if(relay[relayIdx] == nil) then
-        print("Invalid relay index")
-        return
-    end
-    local curSideUsr = sideToUsr(relayIdx, side)
-    if(curSideUsr) then
-        print("Side already registered to ", curSideUsr)
-        print("clear must be called on the user/side before set")
-        return
-    end
-    log:log(log.Level.INFO, "Set " .. userID .. " to relay " .. relayIdx .. ", side " .. side)
-    config:get("map")[userID] = { relayIdx = relayIdx, side = side }
-    config:save()
-end
-
-terminalCmd["clear"] = function(cmd)
-    if(#cmd < 2 or (#cmd < 3 and cmd[2] == "user") or (#cmd < 4 and cmd[2] == "side")) then
-        print("Invalid usage, correct is clear (user/side) [user/side] [relay idx if side]")
-        return
-    end
-    if(cmd[2] == "side") then
-        if(not Util.isSide(cmd[3])) then
+terminalCmd["set"] = {
+    fn = function(cmd)
+        if(#cmd < 4) then
+            print("Invalid usage, correct is set [userID] [side] [relay Idx]")
+            return
+        end
+        local userID = cmd[2]
+        local side = cmd[3]
+        local relayIdx = cmd[4]
+        if(not Util.isSide(side)) then
             print("Invalid side")
             return
         end
-        local relayIdx = cmd[4]
         if(relay[relayIdx] == nil) then
             print("Invalid relay index")
             return
         end
-        local curUsr = sideToUsr(relayIdx, cmd[3])
-        if(curUsr) then
-            config:get("map")[curUsr] = nil
-            config:save()
-            log:log(log.Level.INFO, "Relay " .. relayIdx .. ": Cleared side " .. cmd[3] .. " registered to " .. curUsr)
+        local curSideUsr = sideToUsr(relayIdx, side)
+        if(curSideUsr) then
+            print("Side already registered to ", curSideUsr)
+            print("clear must be called on the user/side before set")
+            return
         end
-    else --User
-        config:get("map")[cmd[3]] = nil
-        log:log(log.Level.INFO, "Cleared user " .. cmd[3])
+        log:log(log.Level.INFO, "Set " .. userID .. " to relay " .. relayIdx .. ", side " .. side)
+        config:get("map")[userID] = { relayIdx = relayIdx, side = side }
         config:save()
-    end
-end
+    end,
+    debug = false,
+    helpName = "set [userID] [side] [relay Idx]",
+    helpStr = "Set a user ID to a relay and side"
+}
 
-terminalCmd["save"] = function(cmd)
-    config:save()
-end
+terminalCmd["clear"] = {
+    fn = function(cmd)
+        if(#cmd < 2 or (#cmd < 3 and cmd[2] == "user") or (#cmd < 4 and cmd[2] == "side")) then
+            print("Invalid usage, correct is clear (user/side) [user/side] [relay idx if side]")
+            return
+        end
+        if(cmd[2] == "side") then
+            if(not Util.isSide(cmd[3])) then
+                print("Invalid side")
+                return
+            end
+            local relayIdx = cmd[4]
+            if(relay[relayIdx] == nil) then
+                print("Invalid relay index")
+                return
+            end
+            local curUsr = sideToUsr(relayIdx, cmd[3])
+            if(curUsr) then
+                config:get("map")[curUsr] = nil
+                config:save()
+                log:log(log.Level.INFO, "Relay " .. relayIdx .. ": Cleared side " .. cmd[3] .. " registered to " .. curUsr)
+            end
+        else --User
+            config:get("map")[cmd[3]] = nil
+            log:log(log.Level.INFO, "Cleared user " .. cmd[3])
+            config:save()
+        end
+    end,
+    debug = false,
+    helpName = "clear (user/side) [userID/side] {relay_idx}",
+    helpStr = "Clear a user or side mapping"
+}
 
-terminalCmd["config"] = function(cmd)
-    if(#cmd == 1) then
-        print("Config:")
-        print(textutils.serialise(config.data))
-        return
-    end
-    local key = cmd[2]
-    if(#cmd == 3) then
-        local value = cmd[3]
-        config:set(key, value)
-    else
-        print("Value: ", config:get(key))
-    end
-end
+terminalCmd["save"] = {
+    fn = function(cmd)
+        config:save()
+    end,
+    debug = true,
+    helpName = "save",
+    helpStr = "Save config to disk"
+}
 
-terminalCmd["map"] = function(cmd)
-    print("Mappings:")
-    printMappings(config:get("map"))
-end
+terminalCmd["config"] = {
+    fn = function(cmd)
+        if(#cmd == 1) then
+            print("Config:")
+            print(textutils.serialise(config.data))
+            return
+        end
+        local key = cmd[2]
+        if(#cmd == 3) then
+            local value = cmd[3]
+            config:set(key, value)
+        else
+            print("Value: ", config:get(key))
+        end
+    end,
+    debug = true,
+    helpName = "config {key} {value}",
+    helpStr = "Get or set config values"
+}
 
-terminalCmd["relays"] = function(cmd)
-    print("Relays:")
-    for idx, r in pairs(relay) do
-        print(idx)
-    end
-end
+terminalCmd["map"] = {
+    fn = function(cmd)
+        print("Mappings:")
+        printMappings(config:get("map"))
+    end,
+    debug = false,
+    helpName = "map",
+    helpStr = "Print user to relay/side mappings"
+}
 
-terminalCmd["net"] = function(cmd)
-    stasisNetMgr:host(config:get("loc"))
-    netCodeActive = true
-end
+terminalCmd["relays"] = {
+    fn = function(cmd)
+        print("Relays:")
+        for idx, r in pairs(relay) do
+            print(idx)
+        end
+    end,
+    debug = false,
+    helpName = "rednet",
+    helpStr = "Print available relays and their indexes"
+}
 
-terminalCmd["nonet"] = function(cmd)
-    stasisNetMgr:unhost()
-    netCodeActive = false
-end
+terminalCmd["net"] = {
+    fn = function(cmd)
+        stasisNetMgr:host(config:get("loc"))
+        netCodeActive = true
+    end,
+    debug = true,
+    helpName = "net",
+    helpStr = "Enable rednet"
+}
+
+terminalCmd["nonet"] = {
+    fn = function(cmd)
+        stasisNetMgr:unhost()
+        netCodeActive = false
+    end,
+    debug = true,
+    helpName = "nonet",
+    helpStr = "Disable rednet"
+}
 
 --Main
 
@@ -313,6 +365,7 @@ shell.setDir(appDir)
 log:clear()
 config:load()
 
+--Name of this location
 if(not config:has("loc")) then
     write("Enter the name of this location: ")
     local nameUnique = false
@@ -330,20 +383,31 @@ if(not config:has("loc")) then
     config:set("loc", name)
 end
 
+--Map of users to relay
 if(not config:has("map")) then
     config:set("map", {})
 end
 
+--Default state of relay
+--true will result in output flipping when computer is turned on
 if(not config:has("def_state")) then
     config:set("def_state", false)
 end
 
+--Timeout for net cmds
 if(not config:has("timeout")) then
     config:set("timeout", 1)
 end
 
+--Time to trigger redtone relay for
+--0.2 is min to trigger trapdoor
 if(not config:has("trigger_time")) then
     config:set("trigger_time", 0.2)
+end
+
+--Enable debug commands
+if(not config:has("debug")) then
+    config:set("debug", false)
 end
 
 config:save()

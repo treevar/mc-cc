@@ -245,7 +245,7 @@ terminalCmd["set"] = {
         end
         local curSideUsr = sideToUsr(relayIdx, side)
         if(curSideUsr) then
-            print("Side already registered to ", curSideUsr)
+            print("Side already registered to", curSideUsr)
             print("clear must be called on the user/side before set")
             return
         end
@@ -314,7 +314,7 @@ terminalCmd["config"] = {
             local value = cmd[3]
             config:set(key, value)
         else
-            print("Value: ", config:get(key))
+            print("Value:", config:get(key))
         end
     end,
     debug = true,

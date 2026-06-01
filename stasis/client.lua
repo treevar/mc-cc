@@ -124,7 +124,7 @@ local function handleInput(input)
     local tCmd = terminalCmd[cmd]
     --Hide admin commands from non admins
     if(tCmd and (not tCmd.admin or config:has("admin"))) then
-        terminalCmd[cmd](input)
+        tCmd.fn(input)
     else
         print("Unknown command")
     end

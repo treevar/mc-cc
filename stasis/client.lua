@@ -121,7 +121,9 @@ local function handleInput(input)
         return
     end
     local cmd = input[1]
-    if(terminalCmd[cmd]) then
+    local tCmd = terminalCmd[cmd]
+    --Hide admin commands from non admins
+    if(tCmd and (not tCmd.admin or config:has("admin"))) then
         terminalCmd[cmd](input)
     else
         print("Unknown command")
@@ -129,93 +131,133 @@ local function handleInput(input)
 end
 
 --Terminal Cmd Callbacks
-terminalCmd["exit"] = function(cmd)
-    shouldRun = false
-end
+terminalCmd["exit"] = {
+    fn = function(cmd)
+        shouldRun = false
+    end,
+    helpName = "exit",
+    helpStr = "Exit gracefully",
+}
 
-terminalCmd["nodes"] = function(cmd)
-    findNodes()
-end
+terminalCmd["nodes"] = {
+    fn = function(cmd)
+        findNodes()
+    end,
+    helpName = "nodes",
+    helpStr = "Search for nodes",
+}
 
-terminalCmd["list"] = function(cmd)
-    printNodes(nodes)
-end
+terminalCmd["list"] = {
+    fn = function(cmd)
+        printNodes(nodes)
+    end,
+    helpName = "list",
+    helpStr = "List found nodes"
+}
 
-terminalCmd["tp"] = function(cmd)
-    if(#cmd < 2) then
-        print("Usage:")
-        print("tp [node_id/location]")
-        return
-    end
-    local node = resolveNode(cmd[2])
-    if(not node) then
-        print("Node not found")
-        return
-    end
-    if(node.authed ~= "1") then
-        print("Node not authed")
-        return
-    end
-    stasisNetMgr:send(node.id, 200, Stasis_Proto.CMD.TP, config:get("user_id"))
-    local res = stasisNetMgr:recv(node.id)
-    if(not res or res.status ~= 200) then
-        print("Failed to teleport")
-    end
-end
+terminalCmd["tp"] = {
+    fn = function(cmd)
+        if(#cmd < 2) then
+            print("Usage:")
+            print(terminalCmd["tp"].helpName)
+            return
+        end
+        local node = resolveNode(cmd[2])
+        if(not node) then
+            print("Node not found")
+            return
+        end
+        if(node.authed ~= "1") then
+            print("Node not authed")
+            return
+        end
+        stasisNetMgr:send(node.id, 200, Stasis_Proto.CMD.TP, config:get("user_id"))
+        local res = stasisNetMgr:recv(node.id)
+        if(not res or res.status ~= 200) then
+            print("Failed to teleport")
+        end
+    end,
+    helpName = "tp [node_id/location]",
+    helpStr = "TP to a node",
+}
 
 --Admin CMD
-terminalCmd["tpas"] = function(cmd)
-    if(not config:has("admin")) then
-        return
-    end
-    if(#cmd < 3) then
-        print("Usage:")
-        print("tpas [node_id/location] [user_id]")
-        return
-    end
-    local node = resolveNode(cmd[2])
-    if(not node) then
-        print("Node not found")
-        return
-    end
-    stasisNetMgr:send(node.id, 200, Stasis_Proto.CMD.TP, cmd[3])
-    local res = stasisNetMgr:recv(node.id)
-    if(not res) then
-        print("Failed to teleport")
-    elseif(res.status ~= 200) then
-        print(res.data)
-    else
-        print("Teleported " .. cmd[3] .. " to " .. node.loc)
-    end
-end
+terminalCmd["tpas"] = {
+    fn = function(cmd)
+        if(not config:has("admin")) then
+            return
+        end
+        if(#cmd < 3) then
+            print("Usage:")
+            print(terminalCmd["tpas"].helpName)
+            return
+        end
+        local node = resolveNode(cmd[2])
+        if(not node) then
+            print("Node not found")
+            return
+        end
+        stasisNetMgr:send(node.id, 200, Stasis_Proto.CMD.TP, cmd[3])
+        local res = stasisNetMgr:recv(node.id)
+        if(not res) then
+            print("Failed to teleport")
+        elseif(res.status ~= 200) then
+            print(res.data)
+        else
+            print("Teleported " .. cmd[3] .. " to " .. node.loc)
+        end
+    end,
+    helpName = "tpas [node_id/location] [user_id]",
+    helpStr = "TP another user to a node",
+}
 
-terminalCmd["ping"] = function(cmd)
-    if(#cmd < 2) then
-        print("Usage:")
-        print("ping [node_id/location]")
-        return
-    end
-    local node = resolveNode(cmd[2])
-    if(not node) then
-        print("Node not found")
-        return
-    end
-    if(pingNode(node.id)) then
-        print("Node [" .. node.id .. "] " .. node.loc .. " is online")
-    else
-        print("Node [" .. node.id .. "] " .. node.loc .. " is offline")
-    end
-end
+terminalCmd["ping"] = {
+    fn = function(cmd)
+        if(#cmd < 2) then
+            print("Usage:")
+            print(terminalCmd["ping"].helpName)
+            return
+        end
+        local node = resolveNode(cmd[2])
+        if(not node) then
+            print("Node not found")
+            return
+        end
+        if(pingNode(node.id)) then
+            print("Node [" .. node.id .. "] " .. node.loc .. " is online")
+        else
+            print("Node [" .. node.id .. "] " .. node.loc .. " is offline")
+        end
+    end,
+    hide = true,
+    helpName = "ping [node_id/location]",
+    helpStr = "Ping a node",
+}
 
-terminalCmd["help"] = function(cmd)
-    print("Commands:")
-    print(" nodes \n  Search for nodes")
-    print(" list \n  List found nodes")
-    print(" tp [node_id/location] \n  Teleport to node")
-    print(" ping [node_id/location] \n  Ping node")
-    print(" exit \n  Exit the program")
-    print(" help \n  Show this message")
-end
+terminalCmd["help"] = {
+    fn = function(cmd)
+        if(#cmd == 1) then
+            print("Commands:")
+            for name, cmd in pairs(terminalCmd) do
+                --Only print enabled commands
+                if(not cmd.admin or config:get("admin")) then
+                    print(" " .. cmd.helpName)
+                    print("  " .. cmd.helpStr)
+                end
+            end
+        else
+            local cmdHelp = terminalCmd[cmd[2]]
+            if(not cmdHelp or (cmd.admin and not config:has("admin"))) then
+                print("help: Unknown command '" .. cmd[2] .. "'")
+            else
+                print(" " .. cmdHelp.helpName)
+                print("  " .. cmdHelp.helpStr)
+            end
+        end
+    end,
+    helpName = "help {cmd}",
+    helpStr = "Print cmd info",
+}
 
 
 --Main

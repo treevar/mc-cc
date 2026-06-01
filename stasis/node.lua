@@ -202,17 +202,27 @@ end
 
 terminalCmd["help"] = {
     fn = function(cmd)
-        print("Commands:")
-        for name, cmd in pairs(terminalCmd) do
-            --Only print enabled commands
-            if(not cmd.debug or config:get("debug")) then
-                print(" " .. cmd.helpName)
-                print("  " .. cmd.helpStr)
+        if(#cmd == 1) then
+            print("Commands:")
+            for name, cmd in pairs(terminalCmd) do
+                --Only print enabled commands
+                if(not cmd.debug or config:get("debug")) then
+                    print(" " .. cmd.helpName)
+                    print("  " .. cmd.helpStr)
+                end
+            end
+        else
+            local cmdHelp = terminalCmd[cmd[2]]
+            if(not cmdHelp or (cmd.debug and not config:get("debug"))) then
+                print("help: Unknown command '" .. cmd[2] .. "'")
+            else
+                print(" " .. cmdHelp.helpName)
+                print("  " .. cmdHelp.helpStr)
             end
         end
     end,
     debug = false,
-    helpName = "help",
+    helpName = "help {cmd}",
     helpStr = "Print cmd info",
 }
 
@@ -229,7 +239,8 @@ terminalCmd["exit"] = {
 terminalCmd["set"] = {
     fn = function(cmd)
         if(#cmd < 4) then
-            print("Invalid usage, correct is set [user_id] [side] [relay_id]")
+            print("Invalid usage")
+            print("Correct is", terminalCmd["set"].helpName)
             return
         end
         local userID = cmd[2]

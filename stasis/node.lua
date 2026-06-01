@@ -387,6 +387,27 @@ shell.setDir(appDir)
 log:clear()
 config:load()
 
+--Set max id length
+if(not config:has("max_id_len")) then
+    config:set("max_id_len", 20)
+end
+
+--Timeout for net cmds
+if(not config:has("timeout")) then
+    config:set("timeout", 1)
+end
+
+--Time to trigger redtone relay for
+--0.2 is min to trigger trapdoor
+if(not config:has("trigger_time")) then
+    config:set("trigger_time", 0.2)
+end
+
+--Enable debug commands
+if(not config:has("debug")) then
+    config:set("debug", false)
+end
+
 --Name of this location
 if(not config:has("loc")) then
     write("Enter the name of this location: ")
@@ -420,26 +441,6 @@ if(not config:has("def_state")) then
     config:set("def_state", false)
 end
 
---Timeout for net cmds
-if(not config:has("timeout")) then
-    config:set("timeout", 1)
-end
-
---Time to trigger redtone relay for
---0.2 is min to trigger trapdoor
-if(not config:has("trigger_time")) then
-    config:set("trigger_time", 0.2)
-end
-
---Enable debug commands
-if(not config:has("debug")) then
-    config:set("debug", false)
-end
-
---Set max id length
-if(not config:has("max_id_len")) then
-    config:set("max_id_len", 20)
-end
 
 config:save()
 stasisNetMgr.timeout = config:get("timeout")

@@ -229,7 +229,7 @@ terminalCmd["exit"] = {
 terminalCmd["set"] = {
     fn = function(cmd)
         if(#cmd < 4) then
-            print("Invalid usage, correct is set [userID] [side] [relay Idx]")
+            print("Invalid usage, correct is set [user_id] [side] [relay_id]")
             return
         end
         local userID = cmd[2]
@@ -260,7 +260,7 @@ terminalCmd["set"] = {
 
 terminalCmd["clear"] = {
     fn = function(cmd)
-        if(#cmd < 2 or (#cmd < 3 and cmd[2] == "user") or (#cmd < 4 and cmd[2] == "side")) then
+        if(#cmd < 3 or (#cmd < 3 and cmd[2] == "user") or (#cmd < 4 and cmd[2] == "side")) then
             print("Invalid usage, correct is " .. terminalCmd["clear"].helpName)
             return
         end
@@ -280,10 +280,12 @@ terminalCmd["clear"] = {
                 config:save()
                 log:log(log.Level.INFO, "Relay " .. relayIdx .. ": Cleared side " .. cmd[3] .. " registered to " .. curUsr)
             end
-        else --User
+        elseif(cmd[2] == "user") then
             config:get("map")[cmd[3]] = nil
             log:log(log.Level.INFO, "Cleared user " .. cmd[3])
             config:save()
+        else
+            print("Invalid usage, correct is " .. terminalCmd["clear"].helpName)
         end
     end,
     debug = false,

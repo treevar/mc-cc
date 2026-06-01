@@ -9,6 +9,8 @@ local function isSide(side)
             side == "back"
 end
 
+--Splits a string on the supplied char, c
+--Returns an array of strings
 local function split(str, c)
     local prevPos = 1
     local ret = {}
@@ -25,6 +27,8 @@ local function split(str, c)
     return ret
 end
 
+--Returns whether the supplied name is valid
+--Only checks for spaces rn
 local function isValidName(name)
     if(not name or #name == 0) then
         return false
@@ -35,6 +39,7 @@ local function isValidName(name)
     return true
 end
 
+--Returns whether the table contains the value
 local function tableContains(table, val)
     for _, v in pairs(table) do
         if(v == val) then
@@ -44,6 +49,8 @@ local function tableContains(table, val)
     return false
 end
 
+--Prompt for input and returns the input
+--If validVals is supplied then input is a value in it
 local function prompt(prompt, validVals)
     local valid = false
     local userIn = nil

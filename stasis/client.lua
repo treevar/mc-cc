@@ -240,11 +240,15 @@ end
 
 if(not config:has("user_id")) then
     write("Enter your user ID: ")
+    local maxLen = config:get("max_id_len")
     local nameGood = false
     local userID = nil
     while not nameGood do
         userID = read()
-        if(not Util.isValidName(userID)) then
+        if(#userID == 0) then
+        elseif(#userID > maxLen) then
+            print("Name is too long, max is " .. maxLen)
+        elseif(not Util.isValidName(userID)) then
             print("User ID can't contain spaces, try again")
         else
             nameGood = true
@@ -254,7 +258,11 @@ if(not config:has("user_id")) then
 end
 
 if(not config:has("timeout")) then
-    config:set("timeout", DEF_TIMEOUT)
+    config:set("timeout", 2)
+end
+
+if(not config:has("max_id_len")) then
+    config:set("max_id_len", 20)
 end
 
 config:save()

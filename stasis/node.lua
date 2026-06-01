@@ -377,11 +377,15 @@ config:load()
 --Name of this location
 if(not config:has("loc")) then
     write("Enter the name of this location: ")
+    local maxLen = config:get("max_id_len")
     local nameUnique = false
     local name = nil
     while not nameUnique do
         name = read()
-        if(not Util.isValidName(name)) then
+        if(#name == 0) then
+        elseif(#name > maxLen) then
+            print("Name is too long, max is " .. maxLen)
+        elseif(not Util.isValidName(name)) then
             print("Name can't contain spaces, try again")
         elseif(nodeNameExists(name)) then
             print("Name already taken by another node, try again")
@@ -417,6 +421,11 @@ end
 --Enable debug commands
 if(not config:has("debug")) then
     config:set("debug", false)
+end
+
+--Set max id length
+if(not config:has("max_id_len")) then
+    config:set("max_id_len", 20)
 end
 
 config:save()

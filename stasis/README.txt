@@ -30,3 +30,11 @@ Stasis - Ender Pearl Stasis System
        - relays: Prints relay IDs connected
        - config {key} {value}: Prints entire config, prints specific key, or sets key's value
        - exit - Exit gracefully
+
+Install with 
+wget https://raw.githubusercontent.com/treevar/mc-cc/refs/heads/main/stasis/installer.lua installer.lua
+installer {args}
+ + nostartup - Don't create startup file
+ + run - Run after install
+ + node - Install as node
+ + client - install as client

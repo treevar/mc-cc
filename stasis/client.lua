@@ -1,26 +1,26 @@
 -- Copyright (c) 2026 treevar. All rights reserved.
 -- Licensed under a modified MIT License <https://github.com/treevar/mc-cc/blob/main/LICENSE>
-package.path = package.path .. ";/?.lua"
+package.path = package.path .. ";/?.lua" --Properly find packages no matter location
+--Imports
 local Config = require("common.config")
 local Log = require("common.log")
 local Util = require("common.util")
 local Stasis_Proto = require("stasis_proto")
 local Proto_Manager = require("common.proto_manager")
-
+--Peripherals
 local modem = peripheral.find("modem", function(name, per) return per.isWireless() end) or nil
-
+--Dirs
 local appDir = "/stasis"
 local dataDir = appDir .. "/data"
-
+--Instances
 local log = Log:new(dataDir .. "/latest.log", Log.Level.DEBUG)
 local config = Config:new(dataDir .. "/user.cfg", log)
 local stasisNetMgr = Proto_Manager:new(Stasis_Proto, true, 1, log)
-
+--Local settings
 local shouldRun = true
 --Contains info of nodes found
 local nodes = {}
-local DEF_TIMEOUT = 2
-
+--Commands
 local terminalCmd = {}
 local redNetCmd = {}
 
@@ -76,7 +76,7 @@ end
 local function findNodes()
     print("Searching...")
     local sNodes = { stasisNetMgr:lookup() }
-    print("Found ", #sNodes, " nodes")
+    print("Found", #sNodes, "nodes")
     if(#sNodes == 0) then
         return
     end

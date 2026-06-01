@@ -20,6 +20,7 @@ local stasisNetMgr = Proto_Manager:new(Stasis_Proto, true, 1, log)
 local shouldRun = true
 --Contains info of nodes found
 local nodes = {}
+local nodeIDs = {}
 --Commands
 local terminalCmd = {}
 local redNetCmd = {}
@@ -34,9 +35,9 @@ local function printNode(id)
 end
 
 --Print all nodes with header
-local function printNodes(nodes)
+local function printNodes()
     print("ID  Loc  Authed")
-    for id, n in pairs(nodes) do
+    for _, id in pairs(nodeIDs) do
         printNode(id)
     end
 end
@@ -85,6 +86,7 @@ local function findNodes()
         local node = queryNode(nID, config:get("user_id"))
         if(type(node) == "table") then
             nodes[nID] = node
+            table.insert(nodeIDs, nID)
             write('.')
         elseif(type(node) == "string") then
             write('x')
@@ -92,8 +94,9 @@ local function findNodes()
         else
         end
     end
+    table.sort(nodeIDs)
     print("")
-    printNodes(nodes)
+    printNodes()
 end
 
 --Resolve id/location to node
@@ -149,7 +152,7 @@ terminalCmd["nodes"] = {
 
 terminalCmd["list"] = {
     fn = function(cmd)
-        printNodes(nodes)
+        printNodes()
     end,
     helpName = "list",
     helpStr = "List found nodes"

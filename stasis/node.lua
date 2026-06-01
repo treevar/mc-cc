@@ -29,6 +29,13 @@ local stasisNetMgr = Proto_Manager:new(Stasis_Proto, false, 1, log)
 --Commands
 local redNetCmd = {}
 local terminalCmd = {}
+--User config keys
+local userConfigKeys = {
+    "loc",
+    "def_state",
+    "trigger_time",
+    "timeout",
+}
 --Array of trigger tasks
 local triggerTasks = {}
 --Local settings
@@ -317,20 +324,34 @@ terminalCmd["config"] = {
     fn = function(cmd)
         if(#cmd == 1) then
             print("Config:")
-            print(textutils.serialise(config.data))
-            return
-        end
-        local key = cmd[2]
-        if(#cmd == 3) then
+            for _, key in pairs(userConfigKeys) do
+                print(" " .. key .. ": " .. tostring(config:get(key)))
+            end
+        elseif(#cmd < 4) then
+            local key = cmd[2]
             local value = cmd[3]
-            config:set(key, value)
+            if(not Util.tableContains(userConfigKeys, key)) then
+                print("Unknown config key '" .. key .. "'")
+                return
+            end
+            if(value) then
+                if(config:set(key, value)) then
+                    config:save()
+                    print("Set '" .. key .. "' to '" .. value .. "'")
+                else
+                    print("Bad value")
+                end
+            else
+                print(" " .. key .. ": " .. tostring(config:get(key)))
+            end
         else
-            print("Value:", config:get(key))
+            print("Usage:")
+            print(terminalCmd["config"].helpName)
         end
     end,
-    debug = true,
+    debug = false,
     helpName = "config {key} {value}",
-    helpStr = "Get or set config values"
+    helpStr = "View or set config values",
 }
 
 terminalCmd["map"] = {
@@ -389,23 +410,23 @@ config:load()
 
 --Set max id length
 if(not config:has("max_id_len")) then
-    config:set("max_id_len", 20)
+    config:set("max_id_len", 20, "number")
 end
 
 --Timeout for net cmds
 if(not config:has("timeout")) then
-    config:set("timeout", 1)
+    config:set("timeout", 1, "number")
 end
 
 --Time to trigger redtone relay for
 --0.2 is min to trigger trapdoor
 if(not config:has("trigger_time")) then
-    config:set("trigger_time", 0.2)
+    config:set("trigger_time", 0.2, "number")
 end
 
 --Enable debug commands
 if(not config:has("debug")) then
-    config:set("debug", false)
+    config:set("debug", false, "boolean")
 end
 
 --Name of this location
@@ -427,18 +448,18 @@ if(not config:has("loc")) then
             nameUnique = true
         end
     end
-    config:set("loc", name)
+    config:set("loc", name, "string")
 end
 
 --Map of users to relay
 if(not config:has("map")) then
-    config:set("map", {})
+    config:set("map", {}, "table")
 end
 
 --Default state of relay
 --true will result in output flipping when computer is turned on
 if(not config:has("def_state")) then
-    config:set("def_state", false)
+    config:set("def_state", false, "boolean")
 end
 
 

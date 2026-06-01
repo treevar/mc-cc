@@ -24,6 +24,11 @@ local nodeIDs = {}
 --Commands
 local terminalCmd = {}
 local redNetCmd = {}
+--User editable config
+local userConfigKeys = {
+    "user_id",
+    "timeout",
+}
 
 --Print info about node
 local function printNode(id)
@@ -262,6 +267,39 @@ terminalCmd["help"] = {
     helpStr = "Print cmd info",
 }
 
+terminalCmd["config"] = {
+    fn = function(cmd)
+        if(#cmd == 1) then
+            print("Config:")
+            for _, key in pairs(userConfigKeys) do
+                print(" " .. key .. ": " .. tostring(config:get(key)))
+            end
+        elseif(#cmd < 4) then
+            local key = cmd[2]
+            local value = cmd[3]
+            if(not Util.tableContains(userConfigKeys, key)) then
+                print("Unknown config key '" .. key .. "'")
+                return
+            end
+            if(value) then
+                if(config:set(key, value)) then
+                    config:save()
+                    print("Set '" .. key .. "' to '" .. value .. "'")
+                else
+                    print("Bad value")
+                end
+            else
+                print(" " .. key .. ": " .. tostring(config:get(key)))
+            end
+        else
+            print("Usage:")
+            print(terminalCmd["config"].helpName)
+        end
+    end,
+    helpName = "config {key} {value}",
+    helpStr = "View or set config values",
+}
+
 
 --Main
 
@@ -284,11 +322,11 @@ else
 end
 
 if(not config:has("timeout")) then
-    config:set("timeout", 2)
+    config:set("timeout", 2, "number")
 end
 
 if(not config:has("max_id_len")) then
-    config:set("max_id_len", 20)
+    config:set("max_id_len", 20, "number")
 end
 
 if(not config:has("user_id")) then
@@ -307,7 +345,7 @@ if(not config:has("user_id")) then
             nameGood = true
         end
     end
-    config:set("user_id", userID)
+    config:set("user_id", userID, "string")
 end
 
 config:save()

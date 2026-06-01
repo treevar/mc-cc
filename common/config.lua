@@ -21,6 +21,18 @@ function Config:_log(level, ...)
     end
 end
 
+function Config.isValidType(cfgEntry, val)
+    if(not cfgEntry.types) then
+        return true
+    end
+    for _, t in pairs(cfgEntry.types) do
+        if(t == "any" or t == type(val)) then
+            return true
+        end
+    end
+    return false
+end
+
 function Config:load(fileName)
     fileName = fileName or self.fileName
     if fs.exists(fileName) then
@@ -54,16 +66,35 @@ function Config:save(fileName)
 end
 
 function Config:has(key)
-    return self.data[key] ~= nil
+    return self.data[key] ~= nil and self.data[key].value ~= nil
 end
 
 function Config:get(key)
-    return self.data[key]
+    return self.data[key].value
 end
 
-function Config:set(key, value)
-    self.data[key] = value
-    self:_log(Log.Level.DEBUG, "Updated config ", key, ": ", value or "nil")
+--Set a config value.
+--Used to create new config entries as well, if types is supplied on first set then it will check types on future sets
+--If types is not supplied on first set then any type is allowed
+--Adding 'any' to types allows any type for that entry
+--Returns whether the set was successful.
+function Config:set(key, value, types)
+    if(type(types) == "string") then
+        types = {types}
+    end
+    if(self.data[key] == nil) then
+        self.data[key] = {
+            value = value,
+            types = types or {"any"}
+        }
+    end
+    if(Config.isValidType(self.data[key], value)) then
+        self.data[key].value = value
+        self:_log(Log.Level.DEBUG, "Updated config ", key, ": ", value or "nil")
+        return true
+    end
+    self:_log(Log.Level.WARN, "Bad type for config ", key, ": ", value, " (expected ", table.concat(self.data[key].types, " or "), ")")
+    return false
 end
 
 function Config:clear()

@@ -29,14 +29,20 @@ end
 
 --Pad str to be len chars long with char (defaults to space)
 local function pad(str, len, char)
+    if(type(str) ~= "string") then
+        str = tostring(str)
+    end
     char = char or " "
-    if(#str >= len) then return str end
+    if(str == nil or #str >= len) then return str end
     return str .. string.rep(char, len - #str)
 end
 
 --Shiorten str to len chars, adding a , to the end if it was shortened
 local function shorten(str, len)
-    if(#str <= len) then return str end
+    if(type(str) ~= "string") then
+        str = tostring(str)
+    end
+    if(str == nil or #str <= len) then return str end
     return string.sub(str, 1, len - 1) .. ","
 end
 

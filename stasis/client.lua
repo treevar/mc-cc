@@ -288,6 +288,7 @@ terminalCmd["config"] = {
                 return
             end
             if(value) then
+                value = config:coerce(key, value)
                 if(config:set(key, value)) then
                     config:save()
                     print("Set '" .. key .. "' to '" .. value .. "'")
@@ -327,18 +328,9 @@ else
     rednet.open(peripheral.getName(modem))
 end
 
-if(not config:has("timeout")) then
-    config:set("timeout", 2, "number")
-end
-
-if(not config:has("show_unauthed")) then
-    config:set("show_unauthed", true, "boolean")
-end
-
-if(not config:has("max_id_len")) then
-    config:set("max_id_len", 20, "number")
-end
-
+config:add("timeout", 2, "number")
+config:add("show_unauthed", true, "boolean")
+config:add("max_id_len", 20, "number")
 if(not config:has("user_id")) then
     write("Enter your user ID: ")
     local maxLen = config:get("max_id_len")

@@ -336,6 +336,7 @@ terminalCmd["config"] = {
                 return
             end
             if(value) then
+                value = config:coerce(key, value)
                 if(config:set(key, value)) then
                     config:save()
                     print("Set '" .. key .. "' to '" .. value .. "'")
@@ -410,26 +411,19 @@ log:clear()
 config:load()
 
 --Set max id length
-if(not config:has("max_id_len")) then
-    config:set("max_id_len", 20, "number")
-end
-
+config:add("max_id_len", 20, "number")
 --Timeout for net cmds
-if(not config:has("timeout")) then
-    config:set("timeout", 1, "number")
-end
-
+config:add("timeout", 1, "number")
 --Time to trigger redtone relay for
 --0.2 is min to trigger trapdoor
-if(not config:has("trigger_time")) then
-    config:set("trigger_time", 0.2, "number")
-end
-
+config:add("trigger_time", 0.2, "number")
 --Enable debug commands
-if(not config:has("debug")) then
-    config:set("debug", false, "boolean")
-end
-
+config:add("debug", false, "boolean")
+--Map of users to relay
+config:add("map", {}, "table")
+--Default state of relay
+--true will result in output flipping when computer is turned on
+config:add("def_state", false, "boolean")
 --Name of this location
 if(not config:has("loc")) then
     write("Enter the name of this location: ")
@@ -451,18 +445,6 @@ if(not config:has("loc")) then
     end
     config:set("loc", name, "string")
 end
-
---Map of users to relay
-if(not config:has("map")) then
-    config:set("map", {}, "table")
-end
-
---Default state of relay
---true will result in output flipping when computer is turned on
-if(not config:has("def_state")) then
-    config:set("def_state", false, "boolean")
-end
-
 
 config:save()
 stasisNetMgr.timeout = config:get("timeout")

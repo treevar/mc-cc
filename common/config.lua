@@ -141,6 +141,10 @@ Config.coerceValue = function(val, types)
     return nil
 end
 
+function Config:coerce(key, value)
+    return Config.coerceValue(value, self:getTypes(key))
+end
+
 --Set a config value.
 --Used to create new config entries as well, if types is supplied on first set then it will check types on future sets
 --If types is not supplied on first set then any type is allowed

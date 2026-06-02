@@ -12,15 +12,17 @@ function GitHubLoader:new(user, repo, branch)
     return o
 end
 
+--Validates the url to ensure it doesn't contain any malicious sequences, returns whether valid
 function GitHubLoader:checkUrl(url)
     local bad = {
         "..", --Path traversal
-        "%2E%2E",
-        "%2e%2e"
+        "%2e%2e", --Encoded path traversal
+        "%252e%252e", --Double encoded path traversal
     }
     if(type(url) ~= "string") then
         return false
     end
+    url = string.lower(url)
     for _, seq in ipairs(bad) do
         if(string.find(url, seq, 1, true)) then
             return false
@@ -30,6 +32,9 @@ function GitHubLoader:checkUrl(url)
     return true
 end
 
+
+--Retrieves the file at urlPath from the repo and saves it to filePath, returns whether successful
+--If filePath is omitted then it defaults to urlPath
 function GitHubLoader:get(urlPath, filePath)
     if(not filePath) then
         filePath = urlPath

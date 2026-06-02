@@ -59,7 +59,7 @@ file.write(content)
 file.close()
 
 local Github = require("treevar.common.gh_loader")
-local loader = Github:new("treevar", "mc-cc", "main")
+local loader = Github:new(ghCfg.user, ghCfg.repo, ghCfg.branch)
 loader.dir = ghCfg.user --Save all files to treevar folder to avoid cluttering root and to allow easy deletion of all files by deleting the folder
 
 local filesNeeded = {

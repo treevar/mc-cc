@@ -28,6 +28,7 @@ local redNetCmd = {}
 local userConfigKeys = {
     "user_id",
     "timeout",
+    "show_unauthed",
 }
 
 --Print info about node
@@ -44,7 +45,9 @@ end
 local function printNodes()
     print(Util.pad("ID", 6) .. Util.pad("Location", 14) .. "Authed")
     for _, id in pairs(nodeIDs) do
-        printNode(id)
+        if(config:get("show_unauthed") or nodes[id].authed == "1") then
+            printNode(id)
+        end
     end
 end
 
@@ -326,6 +329,10 @@ end
 
 if(not config:has("timeout")) then
     config:set("timeout", 2, "number")
+end
+
+if(not config:has("show_unauthed")) then
+    config:set("show_unauthed", true, "boolean")
 end
 
 if(not config:has("max_id_len")) then

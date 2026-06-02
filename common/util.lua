@@ -27,13 +27,26 @@ local function split(str, c)
     return ret
 end
 
+--Pad str to be len chars long with char (defaults to space)
+local function pad(str, len, char)
+    char = char or " "
+    if(#str >= len) then return str end
+    return str .. string.rep(char, len - #str)
+end
+
+--Shiorten str to len chars, adding a , to the end if it was shortened
+local function shorten(str, len)
+    if(#str <= len) then return str end
+    return string.sub(str, 1, len - 1) .. ","
+end
+
 --Returns whether the supplied name is valid
---Only checks for spaces rn
+--No space, comma, or empty names allowed
 local function isValidName(name)
     if(not name or #name == 0) then
         return false
     end
-    if(string.find(name, " ", 1, true)) then
+    if(string.find(name, "[ ,]")) then
         return false    
     end
     return true
@@ -66,4 +79,4 @@ local function prompt(prompt, validVals)
     return userIn
 end
 
-return {isSide = isSide, split = split, isValidName = isValidName, tableContains = tableContains, prompt = prompt}
+return {isSide = isSide, split = split, pad = pad, shorten = shorten, isValidName = isValidName, tableContains = tableContains, prompt = prompt}

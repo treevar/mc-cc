@@ -83,9 +83,10 @@ end
 
 --Print current user to relay/side mapping
 local function printMappings(map)
-    print("User   Relay Side")
+    print(Util.pad("User", 21) .. Util.pad("Relay", 7) .. "Side")
     for k, v in pairs(map) do
-        print(k .. " " .. v.relayIdx .. "     " .. v.side)
+        --max user is 20 chars + 1 space, relay is 6 chars (bottom) + 1 space, side has more than enough space
+        print(Util.pad(k, 21) .. Util.pad(v.relayIdx, 7) .. v.side)
     end
 end
 
@@ -268,7 +269,7 @@ terminalCmd["set"] = {
             return
         end
         log:log(log.Level.INFO, "Set " .. userID .. " to relay " .. relayIdx .. ", side " .. side)
-        config:get("map")[userID] = { relayIdx = relayIdx, side = side }
+        config.data["map"].value[userID] = { relayIdx = relayIdx, side = side }
         config:save()
     end,
     debug = false,
@@ -294,12 +295,12 @@ terminalCmd["clear"] = {
             end
             local curUsr = sideToUsr(relayIdx, cmd[3])
             if(curUsr) then
-                config:get("map")[curUsr] = nil
+                config.data["map"].value[curUsr] = nil
                 config:save()
                 log:log(log.Level.INFO, "Relay " .. relayIdx .. ": Cleared side " .. cmd[3] .. " registered to " .. curUsr)
             end
         elseif(cmd[2] == "user") then
-            config:get("map")[cmd[3]] = nil
+            config.data["map"].value[cmd[3]] = nil
             log:log(log.Level.INFO, "Cleared user " .. cmd[3])
             config:save()
         else

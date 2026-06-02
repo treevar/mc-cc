@@ -36,12 +36,13 @@ local function printNode(id)
     if(not n) then
         return
     end
-    print(n.id .. ": '" .. n.loc .. "' " .. n.authed)
+    --max id is 5 chars, auth is 1 char, 2 space chars, screen is 26 chars, so loc gets 18 chars
+    print(Util.pad(n.id, 6) .. Util.shorten(n.loc, 19) .. n.authed)
 end
 
 --Print all nodes with header
 local function printNodes()
-    print("ID  Loc  Authed")
+    print(Util.pad("ID", 6) .. Util.pad("Location", 19) .. "Auth")
     for _, id in pairs(nodeIDs) do
         printNode(id)
     end

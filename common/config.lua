@@ -17,7 +17,7 @@ end
 
 function Config:_log(level, ...)
     if self.logger then
-        self.logger:log(level, ...)
+        self.logger:log(level, "Config:", ...)
     end
 end
 

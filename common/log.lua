@@ -33,7 +33,7 @@ function Log:log(level, ...)
         return
     end
     local file = fs.open(self.fileName, "a")
-    file.writeLine("[" .. Log.LevelStr[level] .. "] " .. textutils.serialize({...}))
+    file.writeLine("[" .. Log.LevelStr[level] .. "] " .. table.concat({...}, " "))
     file.close()
 end
 

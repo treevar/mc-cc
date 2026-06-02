@@ -24,7 +24,7 @@ end
 
 function Proto_Manager:_log(level, ...)
     if self.logger then
-        self.logger:log(level, ...)
+        self.logger:log(level, "Proto:", ...)
     end
 end
 
@@ -116,7 +116,9 @@ end
 function Proto_Manager:recv(expectID)
     local proto = self:getProtoString()
     local id, pckt = rednet.receive(proto, self.timeout)
-    self:_log(Log.Level.DEBUG, "Received message with proto " .. proto .. " from " .. (id or "nil") .. ": " .. textutils.serialize(pckt or "nil"))
+    if(id ~= nil) then
+        self:_log(Log.Level.DEBUG, "Received message with proto " .. proto .. " from " .. id .. ": " .. textutils.serialize(pckt or "nil"))
+    end
     
     if(not id or not pckt or (expectID and id ~= expectID)) then
         return nil

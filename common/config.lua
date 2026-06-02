@@ -110,9 +110,16 @@ function Config:set(key, value, types)
         self.data[key].value = value
         self:_log(Log.Level.DEBUG, "Updated config " .. key .. ": " .. tostring(value or "nil"))
         return true
+    else
+        value = tonumber(value) --Terminal input is always string, so try to convert to number
+        if(not Config.isValidType(self.data[key], value)) then
+            self:_log(Log.Level.WARN, "Bad type for config " .. key .. ": " .. tostring(value or "nil") .. " (expected " .. table.concat(self.data[key].types, " or ") .. ")")
+            return false
+        end
+        self.data[key].value = value
+        self:_log(Log.Level.DEBUG, "Updated config " .. key .. ": " .. tostring(value or "nil"))
+        return true
     end
-    self:_log(Log.Level.WARN, "Bad type for config " .. key .. ": " .. tostring(value or "nil") .. " (expected " .. table.concat(self.data[key].types, " or ") .. ")")
-    return false
 end
 
 function Config:clear()

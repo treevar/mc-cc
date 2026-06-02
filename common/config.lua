@@ -79,6 +79,22 @@ function Config:save(fileName)
     self:_log(Log.Level.INFO, "Saved config to ", fileName)
 end
 
+--Adds a config entry if it doesnt exist
+--Returns whether the add was successful (will fail if key already exists)
+function Config:add(key, value, types)
+    if(type(types) == "string") then
+        types = {types}
+    end
+    if(self.data[key] ~= nil) then
+        return false
+    end
+    self.data[key] = {
+        value = value,
+        types = types or {"any"}
+    }
+    return true
+end
+
 function Config:has(key)
     return self.data[key] ~= nil and self.data[key].value ~= nil
 end
@@ -130,16 +146,10 @@ end
 --If types is not supplied on first set then any type is allowed
 --Adding 'any' to types allows any type for that entry
 --Returns whether the set was successful.
-function Config:set(key, value, types)
-    if(type(types) == "string") then
-        types = {types}
-    end
-    --Create if NX
+function Config:set(key, value)
     if(self.data[key] == nil) then
-        self.data[key] = {
-            value = value,
-            types = types or {"any"}
-        }
+        self:_log(Log.Level.Warn, "Tried to set nonexistant config entry " .. key)
+        return false
     end
     if(Config.isValidType(self.data[key], value)) then
         self.data[key].value = value

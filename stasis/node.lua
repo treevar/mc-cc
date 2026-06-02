@@ -59,7 +59,7 @@ end
 local function initRedstoneRelay(relayIdx, state)
     local r = relay[relayIdx]
     if (r == nil) then
-        log:log(log.Level.WARN, "Attempted to initialize nonexistant relay ID", tostring(relayIdx))
+        log:log(log.Level.WARN, "Attempted to initialize nonexistant relay ID " .. tostring(relayIdx))
         return
     end
     r.setOutput("top", state)
@@ -68,7 +68,7 @@ local function initRedstoneRelay(relayIdx, state)
     r.setOutput("right", state)
     r.setOutput("front", state)
     r.setOutput("back", state)
-    log:log(log.Level.INFO, "Initialized relay ID", relayIdx, "to state", state)
+    log:log(log.Level.INFO, "Initialized relay ID " .. tostring(relayIdx) .. " to state " .. tostring(state))
 end
 
 --Queries other nodes and returns whether any have the supplied name
@@ -99,7 +99,7 @@ local function triggerStasis(relayIdx, side)
 
     local defState = config:get("def_state")
     relay.setOutput(side, not defState)
-    log:log(Log.Level.INFO, "Triggered side", side, "on relay", relayIdx)
+    log:log(Log.Level.INFO, "Triggered side " .. side .. " on relay " .. relayIdx)
     --Wait to trigger redstone
     local tTime = config:get("trigger_time")
     local start = os.clock()
@@ -115,7 +115,7 @@ local function tickTasks()
         local task = triggerTasks[i]
         local suc, err = coroutine.resume(task)
         if(not suc) then
-            log:log(Log.Level.ERROR, "Trigger task failed with err:", err)
+            log:log(Log.Level.ERROR, "Trigger task failed with err: " .. err)
             table.remove(triggerTasks, i)
         elseif(coroutine.status(task) == "dead") then
             table.remove(triggerTasks, i)

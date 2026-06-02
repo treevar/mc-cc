@@ -80,6 +80,8 @@ end
 
 --Finds all nodes currently online and queries them
 local function findNodes()
+    nodes = {}
+    nodeIDs = {}
     print("Searching...")
     local sNodes = { stasisNetMgr:lookup() }
     print("Found", #sNodes, "nodes")

@@ -91,6 +91,40 @@ function Config:getTypes(key)
     return self.data[key].types
 end
 
+Config.coerceFuncs = {
+    number = tonumber,
+    boolean = function(val)
+        if type(val) == "boolean" then
+            return val
+        elseif type(val) == "string" then
+            local lowerVal = val:lower()
+            if lowerVal == "true" then
+                return true
+            elseif lowerVal == "false" then
+                return false
+            end
+        end
+        return nil
+    end,
+    string = tostring
+}
+
+Config.coerceValue = function(val, types)
+    if(Util.tableContains(types, "any")) then
+        return val
+    end
+    for _, t in pairs(types) do
+        local coerceFunc = Config.coerceFuncs[t]
+        if(coerceFunc ~= nil) then
+            local coercedVal = coerceFunc(val)
+            if(type(coercedVal) == t) then
+                return coercedVal
+            end
+        end
+    end
+    return nil
+end
+
 --Set a config value.
 --Used to create new config entries as well, if types is supplied on first set then it will check types on future sets
 --If types is not supplied on first set then any type is allowed
@@ -100,6 +134,7 @@ function Config:set(key, value, types)
     if(type(types) == "string") then
         types = {types}
     end
+    --Create if NX
     if(self.data[key] == nil) then
         self.data[key] = {
             value = value,
@@ -111,14 +146,8 @@ function Config:set(key, value, types)
         self:_log(Log.Level.DEBUG, "Updated config " .. key .. ": " .. tostring(value or "nil"))
         return true
     else
-        value = tonumber(value) --Terminal input is always string, so try to convert to number
-        if(not Config.isValidType(self.data[key], value)) then
-            self:_log(Log.Level.WARN, "Bad type for config " .. key .. ": " .. tostring(value or "nil") .. " (expected " .. table.concat(self.data[key].types, " or ") .. ")")
-            return false
-        end
-        self.data[key].value = value
-        self:_log(Log.Level.DEBUG, "Updated config " .. key .. ": " .. tostring(value or "nil"))
-        return true
+        self:_log(Log.Level.WARN, "Bad type for config " .. key .. ": " .. tostring(value or "nil") .. " (expected " .. table.concat(self.data[key].types, " or ") .. ")")
+        return false
     end
 end
 

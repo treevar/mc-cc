@@ -339,7 +339,7 @@ terminalCmd["config"] = {
                 value = config:coerce(key, value)
                 if(config:set(key, value)) then
                     config:save()
-                    print("Set '" .. key .. "' to '" .. value .. "'")
+                    print("Set '" .. key .. "' to '" .. tostring(value) .. "'")
                 else
                     print("Bad value")
                 end

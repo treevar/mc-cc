@@ -4,6 +4,11 @@
 package.path = package.path .. ";/?.lua"
 --Process args
 local args = { ... }
+local ghCfg = {
+    user = "treevar",
+    repo = "mc-cc",
+    branch = "main",
+}
 local isClient = nil
 local createStartup = true
 local runAfterInstall = false
@@ -31,7 +36,7 @@ end
 
 --Load GitHub Loader
 --URL for GitHub Loader package
-local url = "https://raw.githubusercontent.com/treevar/mc-cc/refs/heads/main/common/gh_loader.lua"
+local url = "https://raw.githubusercontent.com/" .. ghCfg.user .. "/" .. ghCfg.repo .. "/refs/heads/" .. ghCfg.branch .. "/common/gh_loader.lua"
 local response = http.get(url)
 
 if not response then
@@ -41,16 +46,21 @@ end
 local content = response.readAll()
 response.close()
 
-if(not fs.exists("/common")) then
-    fs.makeDir("/common")
+if(not fs.exists(ghCfg.user)) then
+    fs.makeDir(ghCfg.user)
 end
 
-local file = fs.open("common/gh_loader.lua", "w")
+if(not fs.exists(fs.combine(ghCfg.user, "common"))) then
+    fs.makeDir(fs.combine(ghCfg.user, "common"))
+end
+
+local file = fs.open(fs.combine(ghCfg.user, "common/gh_loader.lua"), "w")
 file.write(content)
 file.close()
 
-local Github = require("common.gh_loader")
+local Github = require("treevar.common.gh_loader")
 local loader = Github:new("treevar", "mc-cc", "main")
+loader.dir = ghCfg.user --Save all files to treevar folder to avoid cluttering root and to allow easy deletion of all files by deleting the folder
 
 local filesNeeded = {
     "common/config.lua",
@@ -90,6 +100,11 @@ if(#fails > 0) then
         print(fileName)
     end
     return
+end
+
+--Prepend dir to get actual entry point path
+if(loader.dir ~= nil) then
+    entryPoint = loader.dir .. "/" .. entryPoint
 end
 
 --Create startup file

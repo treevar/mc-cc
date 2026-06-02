@@ -2,11 +2,11 @@
 -- Licensed under a modified MIT License <https://github.com/treevar/mc-cc/blob/main/LICENSE>
 package.path = package.path .. ";/?.lua" --Properly find packages no matter location
 --Imports
-local Util = require("common.util")
-local Config = require("common.config")
-local Log = require("common.log")
+local Util = require("treevar.common.util")
+local Config = require("treevar.common.config")
+local Log = require("treevar.common.log")
 local Stasis_Proto = require("stasis_proto")
-local Proto_Manager = require("common.proto_manager")
+local Proto_Manager = require("treevar.common.proto_manager")
 --Peripherals
 local modem = peripheral.find("modem", function(name, peripheral) return peripheral.isWireless() end)
 local relay = {}
@@ -20,7 +20,7 @@ local wrappedRelay = peripheral.find("redstone_relay", function(name, r)
     return true
 end)
 --Dirs
-local appDir = "/stasis"
+local appDir = "/treevar/stasis"
 local dataDir = appDir .. "/data"
 --Instances
 local log = Log:new(dataDir .. "/latest.log", Log.Level.DEBUG)

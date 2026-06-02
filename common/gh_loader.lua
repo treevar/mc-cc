@@ -1,6 +1,6 @@
 -- Copyright (c) 2026 treevar. All rights reserved.
 -- Licensed under a modified MIT License <https://github.com/treevar/mc-cc/blob/main/LICENSE>
-GitHubLoader = {user = nil, repo = nil, branch = nil}
+GitHubLoader = {user = nil, repo = nil, branch = nil, dir = nil}
 
 function GitHubLoader:new(user, repo, branch)
     local o = {}
@@ -38,6 +38,9 @@ end
 function GitHubLoader:get(urlPath, filePath)
     if(not filePath) then
         filePath = urlPath
+    end
+    if(self.dir ~= nil) then
+        filePath = fs.combine(self.dir, filePath)
     end
     --Build URL
     local url = "https://raw.githubusercontent.com/" .. self.user .. "/" .. self.repo .. "/refs/heads/" ..self.branch .. "/" .. urlPath

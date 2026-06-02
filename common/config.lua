@@ -1,7 +1,7 @@
 -- Copyright (c) 2026 treevar. All rights reserved.
 -- Licensed under a modified MIT License <https://github.com/treevar/mc-cc/blob/main/LICENSE>
-local util = require("common.util")
-local Log = require("common.log")
+local util = require("treevar.common.util")
+local Log = require("treevar.common.log")
 
 Config = {fileName = "default.cfg", data = {}, logger = nil}
 

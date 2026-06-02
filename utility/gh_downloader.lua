@@ -1,7 +1,7 @@
 package.path = package.path .. ";/?.lua"
 
-local Github = require("common.gh_loader")
-local Util = require("common.util")
+local Github = require("treevar.common.gh_loader")
+local Util = require("treevar.common.util")
 
 local loader = Github:new("treevar", "mc-cc", "main")
 

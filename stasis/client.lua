@@ -356,6 +356,10 @@ config:save()
 
 stasisNetMgr.timeout = config:get("timeout")
 
+cmdMgr.authFunc = function(cmd)
+    return not cmd.tags.admin or config:has("admin")
+end
+
 print("Logged in as", config:get("user_id"))
 findNodes()
 

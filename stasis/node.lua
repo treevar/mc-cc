@@ -480,6 +480,10 @@ for i, r in pairs(relay) do
     initRedstoneRelay(i, config:get("def_state"))
 end
 
+cmdMgr.authFunc = function(cmd)
+    return not cmd.tags.debug or config:has("debug")
+end
+
 print("Current Mappings:")
 printMappings(config:get("map"))
 

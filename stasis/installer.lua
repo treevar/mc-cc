@@ -119,6 +119,12 @@ if(createStartup) then
     startFile.close()
 end
 
+--Move config if it exists
+if(fs.exists("stasis/data/user.cfg")) then
+    fs.copy("stasis/data/user.cfg", "treevar/stasis/data/user.cfg")
+    print("Moved config to new location")
+end
+
 print("Done")
 
 --Execute program

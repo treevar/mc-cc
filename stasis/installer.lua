@@ -135,7 +135,7 @@ if(createStartup) then
     startFile.write("local retVal = \"restart\"\n")
     startFile.write("while(retVal == \"restart\") do\n")
     startFile.write("local stasis = loadfile(\"" .. entryPoint .. "\")\n")
-    startFile.write("setfenv(stasis, getfenv())")
+    startFile.write("setfenv(stasis, getfenv())\n")
     startFile.write("retVal = stasis()\n")
     startFile.write("end\n")
     startFile.close()

@@ -12,6 +12,7 @@ local ghCfg = {
 local isClient = nil
 local createStartup = true
 local runAfterInstall = false
+local silent = false
 if(#args > 0) then
     for _, arg in pairs(args) do
         if(arg == "nostartup") then
@@ -22,6 +23,8 @@ if(#args > 0) then
             isClient = false
         elseif(arg == "client") then
             isClient = true
+        elseif(arg == "silent") then
+            silent = true
         end
     end 
 end
@@ -31,6 +34,13 @@ if(isClient == nil) then
         isClient = true
     else
         isClient = false
+    end
+end
+
+--Write if not silent
+local function writeb(...)
+    if(not silent) then
+        write(...)
     end
 end
 
@@ -84,20 +94,21 @@ table.insert(filesNeeded, entryPoint)
 --Fetch files
 local fails = {}
 for i, fileName in pairs(filesNeeded) do
-    write("[" .. i .. "/" .. #filesNeeded .. "] Fetching '" .. fileName .. "' ")
+    writeb("[" .. i .. "/" .. #filesNeeded .. "] Fetching '" .. fileName .. "' ")
     if(not loader:get(fileName)) then
         table.insert(fails, fileName)
-        write("FAIL\n")
+        writeb("FAIL\n")
     else
-        write("OK\n")
+        writeb("OK\n")
     end
 end
 
 if(#fails > 0) then
-    print("Failled to fetch " .. #fails .. "/" .. #filesNeeded .. " files")
+    writeb("Failled to fetch " .. #fails .. "/" .. #filesNeeded .. " files\n")
     for _, fileName in pairs(fails) do
-        write("X ")
-        print(fileName)
+        writeb("X ")
+        writeb(fileName)
+        writeb("\n")
     end
     return
 end
@@ -109,7 +120,7 @@ end
 
 --Create startup file
 if(createStartup) then
-    print("Creating startup file")
+    writeb("Creating startup file\n")
     --Create startup folder if NX
     if(not fs.exists("/startup")) then
         fs.makeDir("/startup")
@@ -122,10 +133,10 @@ end
 --Move config if it exists
 if(fs.exists("stasis/data/user.cfg")) then
     fs.copy("stasis/data/user.cfg", "treevar/stasis/data/user.cfg")
-    print("Moved config to new location")
+    writeb("Moved config to new location\n")
 end
 
-print("Done")
+writeb("Done\n")
 
 --Execute program
 if(runAfterInstall) then

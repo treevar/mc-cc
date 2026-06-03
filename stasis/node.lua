@@ -209,7 +209,7 @@ end
 
 
 cmdMgr:register("exit",
-    function(cmd)
+    function(cmd, args)
         shouldRun = false
     end,
     "Exit the program"
@@ -221,15 +221,15 @@ cmdMgr:register("set",
         {name = "side", req = true},
         {name = "relay_id", req = true},
     },
-    function(cmd)
-        if(#cmd < 4) then
+    function(cmd, args)
+        if(#args < 4) then
             print("Invalid usage")
             print("Correct is", terminalCmd["set"].helpName)
             return
         end
-        local userID = cmd[2]
-        local side = cmd[3]
-        local relayIdx = cmd[4]
+        local userID = args[2]
+        local side = args[3]
+        local relayIdx = args[4]
         if(not Util.isSide(side)) then
             print("Invalid side")
             return
@@ -257,30 +257,30 @@ cmdMgr:register("clear",
         {name= "user_id/side", req = true},
         {name = "relay_id"},
     },
-    function(cmd)
-        if(#cmd < 3 or (#cmd < 3 and cmd[2] == "user") or (#cmd < 4 and cmd[2] == "side")) then
+    function(cmd, args)
+        if(#args < 3 or (#args < 3 and args[2] == "user") or (#args < 4 and args[2] == "side")) then
             print("Invalid usage, correct is " .. terminalCmd["clear"].helpName)
             return
         end
-        if(cmd[2] == "side") then
-            if(not Util.isSide(cmd[3])) then
+        if(args[2] == "side") then
+            if(not Util.isSide(args[3])) then
                 print("Invalid side")
                 return
             end
-            local relayIdx = cmd[4]
+            local relayIdx = args[4]
             if(relay[relayIdx] == nil) then
                 print("Invalid relay ID")
                 return
             end
-            local curUsr = sideToUsr(relayIdx, cmd[3])
+            local curUsr = sideToUsr(relayIdx, args[3])
             if(curUsr) then
                 config.data["map"].value[curUsr] = nil
                 config:save()
-                log:log(log.Level.INFO, "Relay " .. relayIdx .. ": Cleared side " .. cmd[3] .. " registered to " .. curUsr)
+                log:log(log.Level.INFO, "Relay " .. relayIdx .. ": Cleared side " .. args[3] .. " registered to " .. curUsr)
             end
-        elseif(cmd[2] == "user") then
-            config.data["map"].value[cmd[3]] = nil
-            log:log(log.Level.INFO, "Cleared user " .. cmd[3])
+        elseif(args[2] == "user") then
+            config.data["map"].value[args[3]] = nil
+            log:log(log.Level.INFO, "Cleared user " .. args[3])
             config:save()
         else
             print("Invalid usage, correct is " .. terminalCmd["clear"].helpName)
@@ -291,7 +291,7 @@ cmdMgr:register("clear",
 
 cmdMgr:register("save",
     nil,
-    function(cmd)
+    function(cmd, args)
         config:save()
     end,
     "Save config to disk",
@@ -303,15 +303,15 @@ cmdMgr:register("config",
         {name = "key"},
         {name = "value"},
     },
-    function(cmd)
-        if(#cmd == 1) then
+    function(cmd, args)
+        if(#args == 1) then
             print("Config:")
             for _, key in pairs(userConfigKeys) do
                 print(" " .. key .. ": " .. tostring(config:get(key)))
             end
-        elseif(#cmd < 4) then
-            local key = cmd[2]
-            local value = cmd[3]
+        elseif(#args < 4) then
+            local key = args[2]
+            local value = args[3]
             if(not Util.tableContains(userConfigKeys, key)) then
                 print("Unknown config key '" .. key .. "'")
                 return
@@ -327,9 +327,6 @@ cmdMgr:register("config",
             else
                 print(" " .. key .. ": " .. tostring(config:get(key)))
             end
-        else
-            print("Usage:")
-            print(terminalCmd["config"].helpName)
         end
     end,
     "View or set config values"
@@ -337,7 +334,7 @@ cmdMgr:register("config",
 
 cmdMgr:register("map",
     nil,
-    function(cmd)
+    function(cmd, args)
         print("Mappings:")
         printMappings(config:get("map"))
     end,
@@ -346,7 +343,7 @@ cmdMgr:register("map",
 
 cmdMgr:register("relays",
     nil,
-    function(cmd)
+    function(cmd, args)
         print("Relays:")
         for id, r in pairs(relay) do
             print(id)
@@ -357,7 +354,7 @@ cmdMgr:register("relays",
 
 cmdMgr:register("net",
     nil,
-    function(cmd)
+    function(cmd, args)
         stasisNetMgr:host(config:get("loc"))
         netCodeActive = true
     end,
@@ -367,7 +364,7 @@ cmdMgr:register("net",
 
 cmdMgr:register("nonet",
     nil,
-    function(cmd)
+    function(cmd, args)
         stasisNetMgr:unhost()
         netCodeActive = false
     end,

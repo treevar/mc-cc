@@ -41,6 +41,7 @@ local triggerTasks = {}
 --Local settings
 local netCodeActive = true
 local shouldRun = true
+local retVal = nil --Value to return on exit, used for installer updates
 
 --Returns the user mapped to relayIdx's side
 --Returns nil if none found
@@ -204,6 +205,14 @@ redNetCmd[Stasis_Proto.CMD.TP] = function(pckt)
         end)
         table.insert(triggerTasks, task)
     end
+end
+
+redNetCmd[Stasis_Proto.CMD.UPDATE] = function(pckt)
+    stasisNetMgr:send(pckt.id, 200, Stasis_Proto.CMD.UPDATE, "Updating")
+    stasisNetMgr:unhost()
+    shell.run(fs.combine(shell.dir(), "installer.lua"), "silent")
+    retVal = "restart"
+    shouldRun = false
 end
 
 --Terminal Cmd Callbacks

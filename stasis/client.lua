@@ -223,6 +223,35 @@ terminalCmd["tpas"] = {
     end,
     helpName = "tpas [node_id/location] [user_id]",
     helpStr = "TP another user to a node",
+    admin = true,
+}
+
+terminalCmd["update"] = {
+    fn = function(cmd)
+        if(not config:has("admin")) then
+            return
+        end
+        if(#cmd < 2) then
+            print("Usage:")
+            print(terminalCmd["update"].helpName)
+            return
+        end
+        if(cmd[2] == "all") then
+            for _, n in pairs(nodes) do
+                stasisNetMgr:send(n.id, 200, Stasis_Proto.CMD.UPDATE, "Update")
+            end
+        else
+            local node = resolveNode(cmd[2])
+            if(not node) then
+                print("Node not found")
+                return
+            end
+            stasisNetMgr:send(node.id, 200, Stasis_Proto.CMD.UPDATE, "Update")
+        end
+    end,
+    helpName = "update [node_id/location] | all",
+    helpStr = "Redownload files to a node",
+    admin = true,
 }
 
 terminalCmd["ping"] = {
@@ -243,7 +272,6 @@ terminalCmd["ping"] = {
             print("Node [" .. node.id .. "] " .. node.loc .. " is offline")
         end
     end,
-    hide = true,
     helpName = "ping [node_id/location]",
     helpStr = "Ping a node",
 }

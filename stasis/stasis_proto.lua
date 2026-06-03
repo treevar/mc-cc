@@ -8,7 +8,8 @@ Stasis_Proto = {
     CMD = {
         PING = "ping", --Ping node, returns pong
         INFO = "info", --Get info about node, returns location and if authed
-        TP = "tp" --Teleport to node
+        TP = "tp", --Teleport to node
+        UPDATE = "update", --Redownload files to node
     },
 }
 
@@ -37,7 +38,11 @@ Stasis_Proto.decoders = { --Functions to decode each cmd type, returns decoded d
             end
             return {userID = pckt.data}
         end
-    }
+    },
+    [Stasis_Proto.CMD.UPDATE] = {
+        allowedStatus = {200},
+        fn = function(isClient, pckt) return pckt.data end
+    },
 }
 
 Stasis_Proto.encoders = { --Functions to encode data for each cmd type, returns nil if failed
@@ -63,7 +68,11 @@ Stasis_Proto.encoders = { --Functions to encode data for each cmd type, returns 
                 return data[1] --User ID
             end
         end
-    }
+    },
+    [Stasis_Proto.CMD.UPDATE] = {
+        allowedStatus = {200},
+        fn = function(isClient, data) return data[1] end
+    },
 }
 
 return Stasis_Proto

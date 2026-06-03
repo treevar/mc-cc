@@ -129,7 +129,7 @@ end
 
 --Process rednet message
 local function procRednet()
-    while true do
+    while shouldRun do
         tickTasks()
         if(netCodeActive) then
             local req = stasisNetMgr:recv()

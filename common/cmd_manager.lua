@@ -93,6 +93,7 @@ function Cmd_Manager:call(cmdName, ...)
         success = false,
         msg = nil,
         ret = nil,
+        authed = false,
     }
     local handler = self.handler[cmdName]
     if(not handler) then
@@ -100,6 +101,13 @@ function Cmd_Manager:call(cmdName, ...)
         return retObj
     end
     
+    if(cmdName ~= "help" and not self.authFunc(handler)) then
+        retObj.msg = "Unknown command: " .. cmdName
+        return retObj
+    end
+
+    retObj.authed = true
+
     local suc, err = Cmd_Manager.verifyArgs(handler, args)
     if(not suc) then 
         retObj.msg = err
@@ -110,13 +118,8 @@ function Cmd_Manager:call(cmdName, ...)
     retObj.success = true
     if(cmdName == "help" and handler.fn == nil) then
         retObj.ret = self:_defHelpFn(handler, args)
-        
     else
-        if(not self.authFunc(handler)) then
-            retObj.msg = "Unknown command: " .. cmdName
-        else
-            retObj.ret = handler.fn(handler, args)
-        end
+        retObj.ret = handler.fn(handler, args)
     end
 
     return retObj
@@ -132,7 +135,7 @@ function Cmd_Manager:handle(str)
     if(ret.success) then return ret.ret end
     print(ret.msg)
     local handler = self.handler[cmd]
-    if(handler) then
+    if(ret.authed and handler) then
         print("Usage:")
         print(Cmd_Manager.getHelpHeader(handler))
         print(handler.help)

@@ -132,10 +132,10 @@ if(createStartup) then
         fs.makeDir("/startup")
     end
     local startFile = fs.open("/startup/stasis_loader.lua", "w")
-    startFile.write("local retVal = \"reboot\"\n")
+    startFile.write("local retVal = \"restart\"\n")
+    startFile.write("while(retVal == \"restart\") do\n")
     startFile.write("local stasis = loadfile(\"" .. entryPoint .. "\")\n")
     startFile.write("setfenv(stasis, getfenv())")
-    startFile.write("while(retVal == \"reboot\") do\n")
     startFile.write("retVal = stasis()\n")
     startFile.write("end\n")
     startFile.close()

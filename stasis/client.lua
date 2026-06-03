@@ -223,7 +223,6 @@ terminalCmd["tpas"] = {
     end,
     helpName = "tpas [node_id/location] [user_id]",
     helpStr = "TP another user to a node",
-    hide = true,
 }
 
 terminalCmd["ping"] = {

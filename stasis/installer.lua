@@ -113,6 +113,9 @@ if(#fails > 0) then
     return
 end
 
+--Copy this to stasis dir for updates
+fs.copy(shell.getRunningProgram(), "treevar/stasis/installer.lua")
+
 --Prepend dir to get actual entry point path
 if(loader.dir ~= nil) then
     entryPoint = loader.dir .. "/" .. entryPoint
@@ -126,7 +129,10 @@ if(createStartup) then
         fs.makeDir("/startup")
     end
     local startFile = fs.open("/startup/stasis_loader.lua", "w")
-    startFile.write("shell.run(\"" .. entryPoint .. "\")")
+    startFile.write("local retVal = \"reboot\"\n")
+    startFile.write("while(retVal == \"reboot\") do\n")
+    startFile.write("retVal = shell.run(\"" .. entryPoint .. "\")\n")
+    startFile.write("end\n")
     startFile.close()
 end
 
@@ -140,5 +146,9 @@ writeb("Done\n")
 
 --Execute program
 if(runAfterInstall) then
-    shell.run(entryPoint)
+    if(createStartup) then
+        shell.run("/startup/stasis_loader.lua")
+    else
+        shell.run(entryPoint)
+    end
 end

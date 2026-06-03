@@ -207,34 +207,6 @@ end
 
 --Terminal Cmd Callbacks
 
-cmdMgr:register("help",
-    {
-        {name = "cmd"}
-    },
-    function(cmd, args)
-        if(#cmd == 1) then
-            print("Commands:")
-            for name, cmd in pairs(terminalCmd) do
-                --Only print enabled commands
-                if(not cmd.debug or config:get("debug")) then
-                    print(" " .. cmd.helpName)
-                    print("  " .. cmd.helpStr)
-                end
-            end
-        else
-            local cmdHelp = terminalCmd[cmd[2]]
-            if(not cmdHelp or (cmd.debug and not config:get("debug"))) then
-                print("help: Unknown command '" .. cmd[2] .. "'")
-            else
-                print(" " .. cmdHelp.helpName)
-                print("  " .. cmdHelp.helpStr)
-            end
-        end
-    end,
-    "Print cmd info",
-    {"debug"}
-)
-
 
 cmdMgr:register("exit",
     function(cmd)

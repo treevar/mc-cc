@@ -23,14 +23,13 @@ function Cmd_Manager:register(cmd, expectArgs, fn, help, tags)
     self.handler[cmd] = {
         name = cmd,
         fn = fn,
-        args = expectArgs,
+        args = expectArgs or {},
         help = help,
         tags = tags or {},
     }
 end
 
-function Cmd_Manager:getHelpHeader(cmd)
-    local handler = self.handler[cmd]
+function Cmd_Manager:getHelpHeader(handler)
     if(not handler) then
         return "Unknown Command"
     end
@@ -75,15 +74,14 @@ end
 
 function Cmd_Manager.verifyArgs(cmd, args)
     --Veryify arg count
-    --First arg is cmd name so thats why we +1/-1
-    if(#cmd.args > #args+1) then
+    if(#cmd.args > #args) then
         return false, "More args provided than expected"
     end
     local reqCnt = 0
     for _, arg in pairs(cmd.args) do
         if(arg.req) then reqCnt = reqCnt + 1 end
     end
-    if(#args-1 < reqCnt) then
+    if(#args < reqCnt) then
         return false, "Expected " .. reqCnt .. " args, got " .. #args
     end
     return true

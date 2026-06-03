@@ -95,7 +95,7 @@ function Cmd_Manager:call(cmdName, ...)
         ret = nil,
     }
     local handler = self.handler[cmdName]
-    if(not handler) then
+    if(not handler or not self.authFunc(handler)) then
         retObj.msg = "Unknown command: " .. cmdName
         return retObj
     end

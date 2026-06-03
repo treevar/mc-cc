@@ -53,7 +53,7 @@ function Cmd_Manager:_defHelpFn(cmd, args)
             print("  " .. c.help)
         end
     end
-    if(#cmd == 1) then
+    if(#args == 1) then
         print("Commands:")
         for name, c in pairs(self.handler) do
             printCmd(c)

@@ -1,5 +1,6 @@
 -- Copyright (c) 2026 treevar. All rights reserved.
 -- Licensed under a modified MIT License <https://github.com/treevar/mc-cc/blob/main/LICENSE>
+local Log = require("treevar.common.log")
 Proto_Manager = {PROTO = nil, _isClient = nil, timeout = 2, logger = nil}
 
 local function statusAllowed(status, allowed)

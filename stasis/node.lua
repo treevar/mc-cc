@@ -200,7 +200,7 @@ end
 redNetCmd[Stasis_Proto.CMD.UPDATE] = function(pckt)
     stasisNetMgr:send(pckt.id, 200, Stasis_Proto.CMD.UPDATE, "Updating")
     stasisNetMgr:unhost()
-    shell.run(fs.combine(shell.dir(), "installer.lua"), "silent")
+    shell.run("installer.lua")
     retVal = "restart"
     shouldRun = false
 end

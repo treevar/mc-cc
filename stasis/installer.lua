@@ -115,7 +115,9 @@ if(#fails > 0) then
 end
 
 --Copy this to stasis dir for updates
-fs.copy(shell.getRunningProgram(), "treevar/stasis/installer.lua")
+if(not fs.exists("treevar/stasis/installer.lua")) then
+    fs.copy(shell.getRunningProgram(), "treevar/stasis/installer.lua")
+end
 
 --Prepend dir to get actual entry point path
 if(loader.dir ~= nil) then

@@ -349,7 +349,7 @@ if(not config:has("user_id")) then
             nameGood = true
         end
     end
-    config:set("user_id", userID, "string")
+    config:add("user_id", userID, "string")
 end
 
 config:save()

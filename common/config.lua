@@ -152,7 +152,7 @@ end
 --Returns whether the set was successful.
 function Config:set(key, value)
     if(self.data[key] == nil) then
-        self:_log(Log.Level.Warn, "Tried to set nonexistant config entry " .. key)
+        self:_log(Log.Level.WARN, "Tried to set nonexistant config entry " .. key)
         return false
     end
     if(Config.isValidType(self.data[key], value)) then

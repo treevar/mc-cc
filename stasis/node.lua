@@ -465,3 +465,4 @@ parallel.waitForAny(procRednet, procTerminal)
 --Cleanup
 stasisNetMgr:unhost()
 print("Goodbye")
+return retVal

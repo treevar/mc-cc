@@ -76,6 +76,7 @@ local filesNeeded = {
     "common/config.lua",
     "common/log.lua",
     "common/proto_manager.lua",
+    "common/cmd_manager.lua",
     "common/util.lua",
     "stasis/stasis_proto.lua"
 }

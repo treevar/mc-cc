@@ -448,7 +448,7 @@ if(not config:has("loc")) then
             nameUnique = true
         end
     end
-    config:set("loc", name, "string")
+    config:add("loc", name, "string")
 end
 
 config:save()

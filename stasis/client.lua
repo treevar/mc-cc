@@ -161,11 +161,6 @@ cmdMgr:register("tp",
         {name = "node_id/loc", req = true},
     }, 
     function(cmd, args)
-        if(#args < 2) then
-            print("Usage:")
-            print(terminalCmd["tp"].helpName)
-            return
-        end
         local node = resolveNode(args[2])
         if(not node) then
             print("Node not found")
@@ -194,11 +189,6 @@ cmdMgr:register("tpas",
         if(not config:has("admin")) then
             return
         end
-        if(#args < 3) then
-            print("Usage:")
-            print(terminalCmd["tpas"].helpName)
-            return
-        end
         local node = resolveNode(args[2])
         if(not node) then
             print("Node not found")
@@ -215,20 +205,15 @@ cmdMgr:register("tpas",
         end
     end,
     "TP another user to a node",
-    {"admin"}
+    {admin = true}
 )
 
 cmdMgr:register("update", 
     {
-        {name = "[node_id/loc] | all", req = true},
+        {name = "[node_id/loc] | (all)", req = true},
     }, 
     function(cmd, args)
         if(not config:has("admin")) then
-            return
-        end
-        if(#args < 2) then
-            print("Usage:")
-            print(terminalCmd["update"].helpName)
             return
         end
         if(args[2] == "all") then
@@ -245,7 +230,7 @@ cmdMgr:register("update",
         end
     end,
     "Redownload files to a node",
-    {"admin"}
+    {admin = true}
 )
 
 cmdMgr:register("ping", 
@@ -253,11 +238,6 @@ cmdMgr:register("ping",
         {name = "node_id/loc", req = true},
     }, 
     function(cmd, args)
-        if(#args < 2) then
-            print("Usage:")
-            print(terminalCmd["ping"].helpName)
-            return
-        end
         local node = resolveNode(args[2])
         if(not node) then
             print("Node not found")
@@ -301,9 +281,6 @@ cmdMgr:register("config",
             else
                 print(" " .. key .. ": " .. tostring(config:get(key)))
             end
-        else
-            print("Usage:")
-            print(terminalCmd["config"].helpName)
         end
     end,
     "View or set config values"

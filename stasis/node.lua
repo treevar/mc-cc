@@ -296,7 +296,7 @@ cmdMgr:register("save",
         config:save()
     end,
     "Save config to disk",
-    {"debug"}
+    {debug = true}
 )
 
 cmdMgr:register("config",
@@ -360,7 +360,7 @@ cmdMgr:register("net",
         netCodeActive = true
     end,
     "Enable rednet",
-    {"debug"}
+    {debug = true}
 )
 
 cmdMgr:register("nonet",
@@ -370,7 +370,7 @@ cmdMgr:register("nonet",
         netCodeActive = false
     end,
     "Disable rednet",
-    {"debug"}
+    {debug = true}
 )
 
 --Main

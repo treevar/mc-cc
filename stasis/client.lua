@@ -223,6 +223,7 @@ terminalCmd["tpas"] = {
     end,
     helpName = "tpas [node_id/location] [user_id]",
     helpStr = "TP another user to a node",
+    hide = true,
 }
 
 terminalCmd["ping"] = {
@@ -243,7 +244,6 @@ terminalCmd["ping"] = {
             print("Node [" .. node.id .. "] " .. node.loc .. " is offline")
         end
     end,
-    hide = true,
     helpName = "ping [node_id/location]",
     helpStr = "Ping a node",
 }

@@ -6,6 +6,7 @@ Cmd_Manager = {handler = {}, authFunc = nil}
 function Cmd_Manager:new()
     local o = {}
     setmetatable(o, self)
+    o.handler = {}
     o.handler.help = {
         name = "help",
         fn = nil,

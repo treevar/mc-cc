@@ -209,6 +209,7 @@ end
 
 
 cmdMgr:register("exit",
+    nil,
     function(cmd, args)
         shouldRun = false
     end,

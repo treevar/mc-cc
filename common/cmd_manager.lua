@@ -95,7 +95,7 @@ function Cmd_Manager:call(cmdName, ...)
         ret = nil,
     }
     local handler = self.handler[cmdName]
-    if(not handler or not self.authFunc(handler)) then
+    if(not handler) then
         retObj.msg = "Unknown command: " .. cmdName
         return retObj
     end
@@ -106,12 +106,17 @@ function Cmd_Manager:call(cmdName, ...)
         return retObj
     end
     
+    
     retObj.success = true
-
     if(cmdName == "help" and handler.fn == nil) then
         retObj.ret = self:_defHelpFn(handler, args)
+        
     else
-        retObj.ret = handler.fn(handler, args)
+        if(not self.authFunc(handler)) then
+            retObj.msg = "Unknown command: " .. cmdName
+        else
+            retObj.ret = handler.fn(handler, args)
+        end
     end
 
     return retObj

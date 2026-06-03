@@ -82,7 +82,7 @@ function Cmd_Manager.verifyArgs(cmd, args)
         if(arg.req) then reqCnt = reqCnt + 1 end
     end
     if(#args-1 < reqCnt) then
-        return false, "Expected " .. reqCnt .. " args, got " .. #args
+        return false, "Expected " .. reqCnt .. " args, got " .. #args-1
     end
     return true
 end

@@ -29,7 +29,7 @@ function Cmd_Manager:register(cmd, expectArgs, fn, help, tags)
     }
 end
 
-function Cmd_Manager:getHelpHeader(handler)
+function Cmd_Manager.getHelpHeader(handler)
     if(not handler) then
         return "Unknown Command"
     end
@@ -49,7 +49,7 @@ end
 function Cmd_Manager:_defHelpFn(cmd, args)
     local printCmd = function(c)
         if(self.authFunc == nil or self.authFunc(c)) then
-            print(" " .. self:getHelpHeader(c))
+            print(" " .. Cmd_Manager.getHelpHeader(c))
             print("  " .. c.help)
         end
     end
@@ -126,6 +126,12 @@ function Cmd_Manager:handle(str)
     local ret = self:call(cmd, table.unpack(parts))
     if(ret.success) then return ret.ret end
     print(ret.msg)
+    local handler = self.handler[cmd]
+    if(handler) then
+        print("Usage:")
+        print(Cmd_Manager.getHelpHeader(handler))
+        print(handler.help)
+    end
 end
 
 return Cmd_Manager

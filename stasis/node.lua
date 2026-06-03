@@ -451,7 +451,7 @@ for i, r in pairs(relay) do
 end
 
 cmdMgr.authFunc = function(cmd)
-    return not cmd.tags.debug or config:has("debug")
+    return (cmd.tags and not cmd.tags.debug) or config:has("debug")
 end
 
 print("Current Mappings:")

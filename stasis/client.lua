@@ -161,12 +161,12 @@ cmdMgr:register("tp",
         {name = "node_id/loc", req = true},
     }, 
     function(cmd, args)
-        if(#cmd < 2) then
+        if(#args < 2) then
             print("Usage:")
             print(terminalCmd["tp"].helpName)
             return
         end
-        local node = resolveNode(cmd[2])
+        local node = resolveNode(args[2])
         if(not node) then
             print("Node not found")
             return
@@ -194,24 +194,24 @@ cmdMgr:register("tpas",
         if(not config:has("admin")) then
             return
         end
-        if(#cmd < 3) then
+        if(#args < 3) then
             print("Usage:")
             print(terminalCmd["tpas"].helpName)
             return
         end
-        local node = resolveNode(cmd[2])
+        local node = resolveNode(args[2])
         if(not node) then
             print("Node not found")
             return
         end
-        stasisNetMgr:send(node.id, 200, Stasis_Proto.CMD.TP, cmd[3])
+        stasisNetMgr:send(node.id, 200, Stasis_Proto.CMD.TP, args[3])
         local res = stasisNetMgr:recv(node.id)
         if(not res) then
             print("Failed to teleport")
         elseif(res.status ~= 200) then
             print(res.data)
         else
-            print("Teleported " .. cmd[3] .. " to " .. node.loc)
+            print("Teleported " .. args[3] .. " to " .. node.loc)
         end
     end,
     "TP another user to a node",
@@ -226,17 +226,17 @@ cmdMgr:register("update",
         if(not config:has("admin")) then
             return
         end
-        if(#cmd < 2) then
+        if(#args < 2) then
             print("Usage:")
             print(terminalCmd["update"].helpName)
             return
         end
-        if(cmd[2] == "all") then
+        if(args[2] == "all") then
             for _, n in pairs(nodes) do
                 stasisNetMgr:send(n.id, 200, Stasis_Proto.CMD.UPDATE, "Update")
             end
         else
-            local node = resolveNode(cmd[2])
+            local node = resolveNode(args[2])
             if(not node) then
                 print("Node not found")
                 return
@@ -253,12 +253,12 @@ cmdMgr:register("ping",
         {name = "node_id/loc", req = true},
     }, 
     function(cmd, args)
-        if(#cmd < 2) then
+        if(#args < 2) then
             print("Usage:")
             print(terminalCmd["ping"].helpName)
             return
         end
-        local node = resolveNode(cmd[2])
+        local node = resolveNode(args[2])
         if(not node) then
             print("Node not found")
             return
@@ -278,14 +278,14 @@ cmdMgr:register("config",
         {name = "value"},
     }, 
     function(cmd, args)
-        if(#cmd == 1) then
+        if(#args == 1) then
             print("Config:")
             for _, key in pairs(userConfigKeys) do
                 print(" " .. key .. ": " .. tostring(config:get(key)))
             end
-        elseif(#cmd < 4) then
-            local key = cmd[2]
-            local value = cmd[3]
+        elseif(#args < 4) then
+            local key = args[2]
+            local value = args[3]
             if(not Util.tableContains(userConfigKeys, key)) then
                 print("Unknown config key '" .. key .. "'")
                 return

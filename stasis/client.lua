@@ -5,8 +5,9 @@ package.path = package.path .. ";/?.lua" --Properly find packages no matter loca
 local Config = require("treevar.common.config")
 local Log = require("treevar.common.log")
 local Util = require("treevar.common.util")
-local Stasis_Proto = require("stasis_proto")
+local Stasis_Proto = require("treevar.stasis.stasis_proto")
 local Proto_Manager = require("treevar.common.proto_manager")
+local Cmd_Manager = require("treevar.common.cmd_manager")
 --Peripherals
 local modem = peripheral.find("modem", function(name, per) return per.isWireless() end) or nil
 --Dirs
@@ -16,6 +17,7 @@ local dataDir = appDir .. "/data"
 local log = Log:new(dataDir .. "/latest.log", Log.Level.DEBUG)
 local config = Config:new(dataDir .. "/user.cfg", log)
 local stasisNetMgr = Proto_Manager:new(Stasis_Proto, true, 1, log)
+local cmdMgr = Cmd_Manager:new()
 --Local settings
 local shouldRun = true
 --Contains info of nodes found
@@ -129,48 +131,36 @@ local function resolveNode(input)
     return nil
 end
 
---Handle terminal input
-local function handleInput(input)
-    if(#input == 0) then
-        return
-    end
-    local cmd = input[1]
-    local tCmd = terminalCmd[cmd]
-    --Hide admin commands from non admins
-    if(tCmd and (not tCmd.admin or config:has("admin"))) then
-        tCmd.fn(input)
-    else
-        print("Unknown command")
-    end
-end
-
 --Terminal Cmd Callbacks
-terminalCmd["exit"] = {
-    fn = function(cmd)
+cmdMgr:register("exit", 
+    nil, 
+    function(cmd, args)
         shouldRun = false
     end,
-    helpName = "exit",
-    helpStr = "Exit gracefully",
-}
+    "Exit gracefully"
+)
 
-terminalCmd["nodes"] = {
-    fn = function(cmd)
+cmdMgr:register("nodes",
+    nil,
+    function(cmd, args)
         findNodes()
     end,
-    helpName = "nodes",
-    helpStr = "Search for nodes",
-}
+    "Search for nodes"
+)
 
-terminalCmd["list"] = {
-    fn = function(cmd)
+cmdMgr:register("list", 
+    nil, 
+    function(cmd, args)
         printNodes()
     end,
-    helpName = "list",
-    helpStr = "List found nodes"
-}
+    "List found nodes"
+)
 
-terminalCmd["tp"] = {
-    fn = function(cmd)
+cmdMgr:register("tp", 
+    {
+        {name = "node_id/loc", req = true},
+    }, 
+    function(cmd, args)
         if(#cmd < 2) then
             print("Usage:")
             print(terminalCmd["tp"].helpName)
@@ -191,13 +181,16 @@ terminalCmd["tp"] = {
             print("Failed to teleport")
         end
     end,
-    helpName = "tp [node_id/location]",
-    helpStr = "TP to a node",
-}
+    "TP to a node"
+)
 
 --Admin CMD
-terminalCmd["tpas"] = {
-    fn = function(cmd)
+cmdMgr:register("tpas", 
+    {
+        {name = "node_id/loc", req = true},
+        {name = "user_id", req = true},
+    }, 
+    function(cmd, args)
         if(not config:has("admin")) then
             return
         end
@@ -221,12 +214,45 @@ terminalCmd["tpas"] = {
             print("Teleported " .. cmd[3] .. " to " .. node.loc)
         end
     end,
-    helpName = "tpas [node_id/location] [user_id]",
-    helpStr = "TP another user to a node",
-}
+    "TP another user to a node",
+    {"admin"}
+)
 
-terminalCmd["ping"] = {
-    fn = function(cmd)
+cmdMgr:register("update", 
+    {
+        {name = "[node_id/loc] | all", req = true},
+    }, 
+    function(cmd, args)
+        if(not config:has("admin")) then
+            return
+        end
+        if(#cmd < 2) then
+            print("Usage:")
+            print(terminalCmd["update"].helpName)
+            return
+        end
+        if(cmd[2] == "all") then
+            for _, n in pairs(nodes) do
+                stasisNetMgr:send(n.id, 200, Stasis_Proto.CMD.UPDATE, "Update")
+            end
+        else
+            local node = resolveNode(cmd[2])
+            if(not node) then
+                print("Node not found")
+                return
+            end
+            stasisNetMgr:send(node.id, 200, Stasis_Proto.CMD.UPDATE, "Update")
+        end
+    end,
+    "Redownload files to a node",
+    {"admin"}
+)
+
+cmdMgr:register("ping", 
+    {
+        {name = "node_id/loc", req = true},
+    }, 
+    function(cmd, args)
         if(#cmd < 2) then
             print("Usage:")
             print(terminalCmd["ping"].helpName)
@@ -243,37 +269,15 @@ terminalCmd["ping"] = {
             print("Node [" .. node.id .. "] " .. node.loc .. " is offline")
         end
     end,
-    helpName = "ping [node_id/location]",
-    helpStr = "Ping a node",
-}
+    "Ping a node"
+)
 
-terminalCmd["help"] = {
-    fn = function(cmd)
-        if(#cmd == 1) then
-            print("Commands:")
-            for name, cmd in pairs(terminalCmd) do
-                --Only print enabled commands
-                if(not cmd.admin or config:get("admin")) then
-                    print(" " .. cmd.helpName)
-                    print("  " .. cmd.helpStr)
-                end
-            end
-        else
-            local cmdHelp = terminalCmd[cmd[2]]
-            if(not cmdHelp or (cmd.admin and not config:has("admin"))) then
-                print("help: Unknown command '" .. cmd[2] .. "'")
-            else
-                print(" " .. cmdHelp.helpName)
-                print("  " .. cmdHelp.helpStr)
-            end
-        end
-    end,
-    helpName = "help {cmd}",
-    helpStr = "Print cmd info",
-}
-
-terminalCmd["config"] = {
-    fn = function(cmd)
+cmdMgr:register("config", 
+    {
+        {name = "key"},
+        {name = "value"},
+    }, 
+    function(cmd, args)
         if(#cmd == 1) then
             print("Config:")
             for _, key in pairs(userConfigKeys) do
@@ -302,9 +306,8 @@ terminalCmd["config"] = {
             print(terminalCmd["config"].helpName)
         end
     end,
-    helpName = "config {key} {value}",
-    helpStr = "View or set config values",
-}
+    "View or set config values"
+)
 
 
 --Main
@@ -358,5 +361,5 @@ findNodes()
 
 while shouldRun do
     write("sc> ")
-    handleInput(Util.split(read(), ' '))
+    cmdMgr:handle(read())
 end

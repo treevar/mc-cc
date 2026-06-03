@@ -5,8 +5,9 @@ package.path = package.path .. ";/?.lua" --Properly find packages no matter loca
 local Util = require("treevar.common.util")
 local Config = require("treevar.common.config")
 local Log = require("treevar.common.log")
-local Stasis_Proto = require("stasis_proto")
+local Stasis_Proto = require("treevar.stasis.stasis_proto")
 local Proto_Manager = require("treevar.common.proto_manager")
+local Cmd_Manager = require("treevar.common.cmd_manager")
 --Peripherals
 local modem = peripheral.find("modem", function(name, peripheral) return peripheral.isWireless() end)
 local relay = {}
@@ -26,6 +27,7 @@ local dataDir = appDir .. "/data"
 local log = Log:new(dataDir .. "/latest.log", Log.Level.DEBUG)
 local config = Config:new(dataDir .. "/user.cfg", log)
 local stasisNetMgr = Proto_Manager:new(Stasis_Proto, false, 1, log)
+local cmdMgr = Cmd_Manager:new()
 --Commands
 local redNetCmd = {}
 local terminalCmd = {}
@@ -154,19 +156,7 @@ end
 local function procTerminal()
     while shouldRun do
         write(config:get("loc") .. "> ")
-        local cmd = Util.split(read(), ' ') --Yields
-        if(#cmd > 0) then
-            local termCmd = terminalCmd[cmd[1]]
-            if(termCmd) then
-                if(termCmd.debug and not config:get("debug")) then
-                    print("Debug cmds are disabled")
-                else
-                    termCmd.fn(cmd)
-                end
-            else
-                print("Unknown command")
-            end
-        end
+        cmdMgr:handle(read()) --Yields
     end
 end
 
@@ -217,8 +207,11 @@ end
 
 --Terminal Cmd Callbacks
 
-terminalCmd["help"] = {
-    fn = function(cmd)
+cmdMgr:register("help",
+    {
+        {name = "cmd"}
+    },
+    function(cmd, args)
         if(#cmd == 1) then
             print("Commands:")
             for name, cmd in pairs(terminalCmd) do
@@ -238,23 +231,25 @@ terminalCmd["help"] = {
             end
         end
     end,
-    debug = false,
-    helpName = "help {cmd}",
-    helpStr = "Print cmd info",
-}
+    "Print cmd info",
+    {"debug"}
+)
 
 
-terminalCmd["exit"] = {
-    fn = function(cmd)
+cmdMgr:register("exit",
+    function(cmd)
         shouldRun = false
     end,
-    debug = false,
-    helpName = "exit",
-    helpStr = "Exit the program",
-}
+    "Exit the program"
+)
 
-terminalCmd["set"] = {
-    fn = function(cmd)
+cmdMgr:register("set",
+    {
+        {name = "user_id", req = true},
+        {name = "side", req = true},
+        {name = "relay_id", req = true},
+    },
+    function(cmd)
         if(#cmd < 4) then
             print("Invalid usage")
             print("Correct is", terminalCmd["set"].helpName)
@@ -281,13 +276,16 @@ terminalCmd["set"] = {
         config.data["map"].value[userID] = { relayIdx = relayIdx, side = side }
         config:save()
     end,
-    debug = false,
-    helpName = "set [user_id] [side] [relay_id]",
-    helpStr = "Sets a user ID to a relay/side"
-}
+    "Sets a user ID to a relay/side"
+)
 
-terminalCmd["clear"] = {
-    fn = function(cmd)
+cmdMgr:register("clear",
+    {
+        {name = "user/side", literal = true, req = true},
+        {name= "user_id/side", req = true},
+        {name = "relay_id"},
+    },
+    function(cmd)
         if(#cmd < 3 or (#cmd < 3 and cmd[2] == "user") or (#cmd < 4 and cmd[2] == "side")) then
             print("Invalid usage, correct is " .. terminalCmd["clear"].helpName)
             return
@@ -316,22 +314,24 @@ terminalCmd["clear"] = {
             print("Invalid usage, correct is " .. terminalCmd["clear"].helpName)
         end
     end,
-    debug = false,
-    helpName = "clear (user/side) [userID/side] {relay_id}",
-    helpStr = "Clear a user or side mapping"
-}
+    "Clear a user or side mapping"
+)
 
-terminalCmd["save"] = {
-    fn = function(cmd)
+cmdMgr:register("save",
+    nil,
+    function(cmd)
         config:save()
     end,
-    debug = true,
-    helpName = "save",
-    helpStr = "Save config to disk"
-}
+    "Save config to disk",
+    {"debug"}
+)
 
-terminalCmd["config"] = {
-    fn = function(cmd)
+cmdMgr:register("config",
+    {
+        {name = "key"},
+        {name = "value"},
+    },
+    function(cmd)
         if(#cmd == 1) then
             print("Config:")
             for _, key in pairs(userConfigKeys) do
@@ -360,52 +360,48 @@ terminalCmd["config"] = {
             print(terminalCmd["config"].helpName)
         end
     end,
-    debug = false,
-    helpName = "config {key} {value}",
-    helpStr = "View or set config values",
-}
+    "View or set config values"
+)
 
-terminalCmd["map"] = {
-    fn = function(cmd)
+cmdMgr:register("map",
+    nil,
+    function(cmd)
         print("Mappings:")
         printMappings(config:get("map"))
     end,
-    debug = false,
-    helpName = "map",
-    helpStr = "Print user to relay/side mappings"
-}
+    "Print user to relay/side mappings"
+)
 
-terminalCmd["relays"] = {
-    fn = function(cmd)
+cmdMgr:register("relays",
+    nil,
+    function(cmd)
         print("Relays:")
         for id, r in pairs(relay) do
             print(id)
         end
     end,
-    debug = false,
-    helpName = "rednet",
-    helpStr = "Print available relays and their IDs"
-}
+    "Print available relays and their IDs"
+)
 
-terminalCmd["net"] = {
-    fn = function(cmd)
+cmdMgr:register("net",
+    nil,
+    function(cmd)
         stasisNetMgr:host(config:get("loc"))
         netCodeActive = true
     end,
-    debug = true,
-    helpName = "net",
-    helpStr = "Enable rednet"
-}
+    "Enable rednet",
+    {"debug"}
+)
 
-terminalCmd["nonet"] = {
-    fn = function(cmd)
+cmdMgr:register("nonet",
+    nil,
+    function(cmd)
         stasisNetMgr:unhost()
         netCodeActive = false
     end,
-    debug = true,
-    helpName = "nonet",
-    helpStr = "Disable rednet"
-}
+    "Disable rednet",
+    {"debug"}
+)
 
 --Main
 --Make folder for data if NX

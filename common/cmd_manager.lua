@@ -74,7 +74,7 @@ end
 
 function Cmd_Manager.verifyArgs(cmd, args)
     --Veryify arg count
-    if(#cmd.args > #args) then
+    if(#cmd.args < #args) then
         return false, "More args provided than expected"
     end
     local reqCnt = 0

@@ -47,25 +47,49 @@ function Cmd_Manager.getHelpHeader(handler)
 end
 
 function Cmd_Manager:_defHelpFn(cmd, args)
-    local printCmd = function(c)
+    local cmdPerPage = 5
+    local page = 1
+    local printCmd = function(c, noPrint)
         if(self.authFunc == nil or self.authFunc(c)) then
-            print(" " .. Cmd_Manager.getHelpHeader(c))
-            print("  " .. c.help)
+            if(not noPrint) then 
+                print(" " .. Cmd_Manager.getHelpHeader(c))
+                print("  " .. c.help)
+            end
+            return true
         end
+        return false
     end
-    if(#args == 1) then
-        print("Commands:")
-        for name, c in pairs(self.handler) do
-            printCmd(c)
-        end
-    else
-        local c = self.handler[args[2]]
-        if(not c) then
-            print("help: Unknown Command")
+    if(#args == 2) then
+        page = tonumber(args[2])
+        if(page == nil) then
+            if(not printCmd(self.handler[args[2]])) then
+                print("help: Unknown Command")
+            end
             return
         end
-        printCmd(c)
     end
+    local authedFnCnt = 0
+    for _, cmd in pairs(self.handler) do
+        if(printCmd(cmd, true)) then authedFnCnt = authedFnCnt + 1 end
+    end
+    local maxPage = math.ceil(authedFnCnt / cmdPerPage)
+    if(page > maxPage) then
+        print("Bad page number")
+        return
+    end
+    local screenWidth = 51
+    if(pocket) then screenWidth = 26 end
+    print(Util.center("Help " .. tostring(page) .. "/" .. tostring(maxPage), screenWidth))
+    local skipNum = (page-1) * cmdPerPage
+    local skipped = 0
+    local printed = 0
+    for cmdName, cmd in pairs(self.handler) do
+        if(skipped < skipNum) then
+            if(printCmd(cmd, true)) then skipped = skipped + 1 end
+        elseif(printed < cmdPerPage) then
+            if(printCmd(cmd)) then printed = printed + 1 end
+        end
+    end 
 end
 
 function Cmd_Manager:unregister(cmd)

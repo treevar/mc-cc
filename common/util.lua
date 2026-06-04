@@ -46,6 +46,21 @@ local function shorten(str, len)
     return string.sub(str, 1, len - 1) .. ","
 end
 
+--Center a str to maxLen chars, padding with c
+--If c is not provided then ' ' is used
+local function center(str, maxLen, c)
+    c = c or ' '
+    if(#str >= maxLen) then return str end
+    local padCnt = maxLen - #str
+    --Flooring one and ceiling the other ensures maxLen is 
+    --reached even if it cant be fully centered
+    local extraPad = (math.ceil(padCnt/2) == math.floor(padCnt/2))
+    local padding = string.rep(c, math.floor(padCnt/2))
+    local padded = padding .. str .. padding
+    if(extraPad and (#padding * 2 + #str < maxLen)) then padded = c .. padded end
+    return padded
+end
+
 --Returns whether the supplied name is valid
 --No space, comma, or empty names allowed
 local function isValidName(name)
@@ -85,4 +100,4 @@ local function prompt(prompt, validVals)
     return userIn
 end
 
-return {isSide = isSide, split = split, pad = pad, shorten = shorten, isValidName = isValidName, tableContains = tableContains, prompt = prompt}
+return {isSide = isSide, split = split, pad = pad, shorten = shorten, center = center, isValidName = isValidName, tableContains = tableContains, prompt = prompt}

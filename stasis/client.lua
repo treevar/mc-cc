@@ -158,7 +158,7 @@ cmdMgr:register("list",
 
 cmdMgr:register("tp", 
     {
-        {name = "node_id/loc", req = true},
+        {name = "nID/loc", req = true},
     }, 
     function(cmd, args)
         local node = resolveNode(args[2])
@@ -182,8 +182,8 @@ cmdMgr:register("tp",
 --Admin CMD
 cmdMgr:register("tpas", 
     {
-        {name = "node_id/loc", req = true},
-        {name = "user_id", req = true},
+        {name = "nID/loc", req = true},
+        {name = "uID", req = true},
     }, 
     function(cmd, args)
         if(not config:has("admin")) then
@@ -210,7 +210,7 @@ cmdMgr:register("tpas",
 
 cmdMgr:register("update", 
     {
-        {name = "[node_id/loc] | (all)", req = true},
+        {name = "[nID/loc] | (all)", req = true},
     }, 
     function(cmd, args)
         if(not config:has("admin")) then
@@ -235,7 +235,7 @@ cmdMgr:register("update",
 
 cmdMgr:register("ping", 
     {
-        {name = "node_id/loc", req = true},
+        {name = "nID/loc", req = true},
     }, 
     function(cmd, args)
         local node = resolveNode(args[2])

@@ -218,9 +218,9 @@ cmdMgr:register("exit",
 
 cmdMgr:register("set",
     {
-        {name = "user_id", req = true},
+        {name = "uID", req = true},
         {name = "side", req = true},
-        {name = "relay_id", req = true},
+        {name = "rID", req = true},
     },
     function(cmd, args)
         if(#args < 4) then
@@ -255,8 +255,8 @@ cmdMgr:register("set",
 cmdMgr:register("clear",
     {
         {name = "user/side", literal = true, req = true},
-        {name= "user_id/side", req = true},
-        {name = "relay_id"},
+        {name= "uIDside", req = true},
+        {name = "rID"},
     },
     function(cmd, args)
         if(#args < 3 or (#args < 3 and args[2] == "user") or (#args < 4 and args[2] == "side")) then

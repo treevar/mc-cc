@@ -111,7 +111,7 @@ if(#fails > 0) then
         writeb(fileName)
         writeb("\n")
     end
-    return
+    return false
 end
 
 --Copy this to stasis dir for updates
@@ -157,3 +157,5 @@ if(runAfterInstall) then
         shell.run(entryPoint)
     end
 end
+
+return true

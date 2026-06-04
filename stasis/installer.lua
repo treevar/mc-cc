@@ -142,7 +142,7 @@ if(createStartup) then
 end
 
 --Move config if it exists
-if(fs.exists("stasis/data/user.cfg")) then
+if(fs.exists("stasis/data/user.cfg") and not fs.exists("treevar/stasis/data/user.cfg")) then
     fs.copy("stasis/data/user.cfg", "treevar/stasis/data/user.cfg")
     writeb("Moved config to new location\n")
 end

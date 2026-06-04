@@ -52,7 +52,7 @@ function Cmd_Manager:_defHelpFn(cmd, args)
     local printCmd = function(c, noPrint)
         if(self.authFunc == nil or self.authFunc(c)) then
             if(not noPrint) then 
-                print(" " .. Cmd_Manager.getHelpHeader(c))
+                print("+" .. Cmd_Manager.getHelpHeader(c))
                 print("  " .. c.help)
             end
             return true
